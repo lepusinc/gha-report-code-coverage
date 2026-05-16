@@ -1,6 +1,6 @@
 name: Report Code Coverage
 description: 'Reads coverage report files matched by a glob pattern and outputs a summary to GitHub Step Summary. Optionally downloads coverage artifacts from prior jobs before reading.'
-author: 'lepusinc'
+author: 'Lepus inc.'
 
 inputs:
   file:
@@ -54,7 +54,7 @@ outputs:
     description: 'Full coverage report serialized as a JSON string.'
 
 runs:
-  using: node22
+  using: node24
   main: dist/index.js
 
 branding:
