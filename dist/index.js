@@ -84344,7 +84344,7 @@ const fast_xml_parser_1 = __nccwpck_require__(50591);
 const coverage_1 = __nccwpck_require__(80022);
 const metrics_1 = __nccwpck_require__(87947);
 const source_code_1 = __nccwpck_require__(79011);
-const UNCOVERED_STATEMENT_LIMIT = 30;
+const DEFAULT_STATEMENTS_LIMIT = 30;
 function toArray(value) {
     if (value === undefined || value === null) {
         return [];
@@ -84359,7 +84359,7 @@ function toNumber(value) {
     return Number.isFinite(n) ? n : 0;
 }
 class CloverParser {
-    parse(content, filePath) {
+    parse(content, filePath, statementsLimit = DEFAULT_STATEMENTS_LIMIT) {
         const xmlParser = new fast_xml_parser_1.XMLParser({
             ignoreAttributes: false,
             attributeNamePrefix: '@_',
@@ -84391,7 +84391,7 @@ class CloverParser {
                     methods.push(new source_code_1.SourceCodeMethod(fileName, num, count > 0, line['@_name'] ?? ''));
                 }
                 else if (type === 'stmt') {
-                    if (count === 0 && statements.length < UNCOVERED_STATEMENT_LIMIT) {
+                    if (count === 0 && statements.length < statementsLimit) {
                         statements.push(new source_code_1.SourceCodeStatement(fileName, num, false));
                     }
                 }
@@ -84869,7 +84869,7 @@ class CoverageLoadProcess {
         for (const file of files) {
             const content = await fs.readFile(file, 'utf-8');
             const parser = factory.create(file);
-            results.push(parser.parse(content, file));
+            results.push(parser.parse(content, file, config.uncoveredMethodsLimit));
         }
         return results;
     }

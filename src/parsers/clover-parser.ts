@@ -43,7 +43,7 @@ interface CoverageRoot {
   };
 }
 
-const UNCOVERED_STATEMENT_LIMIT = 30;
+const DEFAULT_STATEMENTS_LIMIT = 30;
 
 function toArray<T>(value: T | T[] | undefined): T[] {
   if (value === undefined || value === null) {
@@ -61,7 +61,7 @@ function toNumber(value: number | string | undefined): number {
 }
 
 export class CloverParser implements Parser {
-  parse(content: string, filePath: string): CoverageData {
+  parse(content: string, filePath: string, statementsLimit: number = DEFAULT_STATEMENTS_LIMIT): CoverageData {
     const xmlParser = new XMLParser({
       ignoreAttributes: false,
       attributeNamePrefix: '@_',
@@ -105,7 +105,7 @@ export class CloverParser implements Parser {
         if (type === 'method') {
           methods.push(new SourceCodeMethod(fileName, num, count > 0, line['@_name'] ?? ''));
         } else if (type === 'stmt') {
-          if (count === 0 && statements.length < UNCOVERED_STATEMENT_LIMIT) {
+          if (count === 0 && statements.length < statementsLimit) {
             statements.push(new SourceCodeStatement(fileName, num, false));
           }
         }

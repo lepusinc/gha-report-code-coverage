@@ -127,7 +127,7 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 | `thresholds-lines`        | string  | `''`         | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし                                                                              |
 | `thresholds-methods`      | string  | `''`         | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                             |
 | `thresholds-conditionals` | string  | `''`         | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                              |
-| `uncovered-methods-limit` | string  | `'10'`       | Step Summary に表示する未カバーメソッドの最大件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする。`report` output の `uncoveredMethods` は本設定に関わらず全件含まれる |
+| `uncovered-methods-limit` | string  | `'10'`       | Step Summary に表示する未カバーメソッドの最大件数、および `report` output の `statements` 配列の上限件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする |
 
 `artifact` には `actions/download-artifact` がサポートする任意のパラメータを指定できる。ただし `path` はアクション内部で
 `/tmp/lepusinc/gha-report-code-coverage` に固定されるため、指定しても無視される（警告を出力）。
@@ -290,7 +290,7 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 
 Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。
 `methods`・`statements` は `<line>` 要素をタイプ別に全件抽出したもので、`covered: false` はカバーされていないことを示す。
-`statements` は上限 30 件。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は
+`statements` の件数は `uncovered-methods-limit` に従う。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は
 Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
 
 `files[].name` は Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。

@@ -22,7 +22,7 @@ export class CoverageLoadProcess {
     for (const file of files) {
       const content = await fs.readFile(file, 'utf-8');
       const parser = factory.create(file);
-      results.push(parser.parse(content, file));
+      results.push(parser.parse(content, file, config.uncoveredMethodsLimit));
     }
     return results;
   }

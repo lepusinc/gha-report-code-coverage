@@ -131,7 +131,7 @@ gha-report-code-coverage/
 - `<metrics>` 属性はそのままフィールド名に使用する
 - `<line>` 要素はタイプ別に `methods` / `statements` として全件抽出し、`covered` フラグを付与する
   - `methods` — `type="method"` の `<line>` 要素。`count="0"` の場合 `covered: false`
-  - `statements` — `type="stmt"` の `<line>` 要素。`count="0"` の場合 `covered: false`（上限 30 件）
+  - `statements` — `type="stmt"` の `<line>` 要素。`count="0"` の場合 `covered: false`（上限は `uncovered-methods-limit` に従う）
 
 `result`・`thresholds` はパーサーではなくアクション本体が付加する。
 
