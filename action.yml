@@ -1,0 +1,29 @@
+name: Report Code Coverage
+description: 'Downloads coverage artifacts (Clover XML) and outputs a summary to GitHub Step Summary'
+author: 'lepusinc'
+
+inputs:
+  artifact-id:
+    description: 'Artifact ID of the coverage results. Mutually exclusive with artifact-pattern.'
+    required: false
+    default: ''
+  artifact-pattern:
+    description: 'Glob pattern to match coverage artifacts (e.g. "coverage *"). Mutually exclusive with artifact-id.'
+    required: false
+    default: ''
+  title:
+    description: 'Heading text for the coverage section in Step Summary'
+    required: false
+    default: 'Coverage'
+  thresholds:
+    description: 'Minimum coverage thresholds as "warn fail" (e.g. "60 80"). Checked against overall line coverage. Empty = no threshold check.'
+    required: false
+    default: ''
+
+runs:
+  using: node20
+  main: dist/index.js
+
+branding:
+  icon: bar-chart-2
+  color: green
