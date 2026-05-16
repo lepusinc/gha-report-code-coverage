@@ -1,4 +1,5 @@
 import * as fs from 'fs/promises';
+import * as os from 'os';
 import * as path from 'path';
 import * as core from '@actions/core';
 import { DefaultArtifactClient, Artifact } from '@actions/artifact';
@@ -6,7 +7,7 @@ import * as yaml from 'js-yaml';
 import { minimatch } from 'minimatch';
 import { Config } from '../config/config';
 
-const DOWNLOAD_PATH = '/tmp/lepusinc/gha-report-code-coverage';
+const DOWNLOAD_PATH = path.join(os.tmpdir(), 'lepusinc', 'gha-report-code-coverage');
 
 interface ArtifactConfig {
   name?: string;

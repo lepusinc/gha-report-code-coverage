@@ -37,6 +37,9 @@ export class Config {
     const warn = Number(parts[0]);
     const fail = Number(parts[1]);
     if (Number.isNaN(warn) || Number.isNaN(fail)) return null;
+    if (warn < 0 || warn > 100 || fail < 0 || fail > 100) {
+      throw new Error(`Threshold values must be between 0 and 100, got: ${parts[0]} ${parts[1]}`);
+    }
     return new ThresholdValue(warn, fail);
   }
 

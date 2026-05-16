@@ -84095,6 +84095,9 @@ class Config {
         const fail = Number(parts[1]);
         if (Number.isNaN(warn) || Number.isNaN(fail))
             return null;
+        if (warn < 0 || warn > 100 || fail < 0 || fail > 100) {
+            throw new Error(`Threshold values must be between 0 and 100, got: ${parts[0]} ${parts[1]}`);
+        }
         return new thresholds_1.ThresholdValue(warn, fail);
     }
     static parseBoolean(input, defaultValue) {
@@ -84682,7 +84685,7 @@ class StepSummaryReporter {
         return `${rate.toFixed(1)}% (${covered}/${total})`;
     }
     escapeMarkdown(text) {
-        return text.replace(/\|/g, '\\|').replace(/`/g, '\\`');
+        return text.replace(/\|/g, '\\|').replace(/`/g, '\\`').replace(/\r?\n/g, ' ');
     }
     addUncoveredMethodsDetails(methods) {
         const header = '| ファイル | 行 | メソッド |\n| --- | --- | --- |\n';
@@ -84856,7 +84859,7 @@ const glob_1 = __nccwpck_require__(8941);
 const parser_factory_1 = __nccwpck_require__(27634);
 class CoverageLoadProcess {
     async run(globPattern, config) {
-        const files = await (0, glob_1.glob)(globPattern, { nodir: true });
+        const files = (await (0, glob_1.glob)(globPattern, { nodir: true })).sort((a, b) => a.localeCompare(b));
         if (files.length === 0) {
             if (config.required) {
                 throw new Error(`No coverage files matched pattern: ${globPattern}`);
@@ -84947,12 +84950,13 @@ var __importStar = (this && this.__importStar) || (function () {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SourceResolveProcess = void 0;
 const fs = __importStar(__nccwpck_require__(91943));
+const os = __importStar(__nccwpck_require__(70857));
 const path = __importStar(__nccwpck_require__(16928));
 const core = __importStar(__nccwpck_require__(37484));
 const artifact_1 = __nccwpck_require__(76846);
 const yaml = __importStar(__nccwpck_require__(74281));
 const minimatch_1 = __nccwpck_require__(46507);
-const DOWNLOAD_PATH = '/tmp/lepusinc/gha-report-code-coverage';
+const DOWNLOAD_PATH = path.join(os.tmpdir(), 'lepusinc', 'gha-report-code-coverage');
 class SourceResolveProcess {
     async run(config) {
         if (config.artifact.trim() === '') {

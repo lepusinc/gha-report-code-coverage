@@ -2,7 +2,7 @@
 
 ## リポジトリ概要
 
-`lepusinc/gha-report-code-coverage` はカバレッジ結果を GitHub Step Summary に表形式で出力する **Node.js 22 GitHub Action**。
+`lepusinc/gha-report-code-coverage` はカバレッジ結果を GitHub Step Summary に表形式で出力する **Node.js 24 GitHub Action**。
 
 PHPUnit / Pest / Jest / SimpleCov など、Clover XML を出力する任意のフレームワークと組み合わせられる言語非依存のアクション。
 
@@ -82,7 +82,7 @@ gha-report-code-coverage/
 
 | ファイル | 役割 |
 |---|---|
-| `action.yml` | inputs / outputs の定義、`runs.using: node22` で `dist/index.js` を指定 |
+| `action.yml` | inputs / outputs の定義、`runs.using: node24` で `dist/index.js` を指定 |
 | `src/main.ts` | エントリーポイント。`ReportCodeCoverageAction` を生成して実行する |
 | `src/action.ts` | `ReportCodeCoverageAction`。初期化・各ステップの呼び出しを担う |
 | `src/foundation/` | プロジェクト全体の基盤となるインターフェース（`Jsonable` など） |
@@ -141,7 +141,7 @@ gha-report-code-coverage/
 
 `artifact` が指定されている場合、`actions/download-artifact` の `outputs.download-path` と `inputs.file` を文字列結合してファイルを探索する。
 
-```
+```text
 // 例
 download-path: /tmp/lepusinc/gha-report-code-coverage
 file:          **/coverage.xml
@@ -174,7 +174,7 @@ outputs が唯一の出力ソースであり、Step Summary やその他の出�
 
 #### Reporter アーキテクチャ
 
-```
+```text
 Reporter（interface）
 ├── StepSummaryReporter   // GitHub Step Summary への出力（Config.stepSummary が true の場合に有効）
 └── PullRequestReporter   // PR コメントへの出力（将来実装）
@@ -210,7 +210,7 @@ GitHub Actions の Node.js アクションはランナー上で `npm install` �
 
 ### 前提
 
-- Node.js 22+
+- Node.js 24+
 - npm
 
 ### セットアップ

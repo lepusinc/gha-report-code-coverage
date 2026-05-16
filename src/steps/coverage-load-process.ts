@@ -7,7 +7,7 @@ import { ParserFactory } from '../parsers/parser-factory';
 
 export class CoverageLoadProcess {
   async run(globPattern: string, config: Config): Promise<CoverageData[]> {
-    const files = await glob(globPattern, { nodir: true });
+    const files = (await glob(globPattern, { nodir: true })).sort((a, b) => a.localeCompare(b));
 
     if (files.length === 0) {
       if (config.required) {
