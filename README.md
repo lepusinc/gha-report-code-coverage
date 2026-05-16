@@ -117,16 +117,16 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 
 ### inputs
 
-| 名前                        | 型       | デフォルト        | 説明                                                                                                                              |
-|---------------------------|---------|--------------|---------------------------------------------------------------------------------------------------------------------------------|
-| `file`                    | string  | —            | カバレッジファイルにマッチする glob パターン（例: `"**/coverage.xml"`）（必須）                                                                           |
-| `artifact`                | string  | `''`         | ファイル読み込み前に実行する `actions/download-artifact` の `with` 句を YAML / JSON で記述する                                                        |
-| `required`                | boolean | `true`       | `false` にするとカバレッジファイルが1件も見つからない場合に警告に留めてジョブを続行する。`true` の場合はエラーにする                                                              |
-| `step-summary`            | boolean | `true`       | `false` にすると Step Summary への出力を行わない                                                                                             |
-| `title`                   | string  | `'Coverage'` | Step Summary の見出しテキスト                                                                                                           |
-| `thresholds-lines`        | string  | `''`         | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし                                                                              |
-| `thresholds-methods`      | string  | `''`         | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                             |
-| `thresholds-conditionals` | string  | `''`         | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                              |
+| 名前                        | 型       | デフォルト        | 説明                                                                                                                    |
+|---------------------------|---------|--------------|-----------------------------------------------------------------------------------------------------------------------|
+| `file`                    | string  | —            | カバレッジファイルにマッチする glob パターン（例: `"**/coverage.xml"`）（必須）                                                                 |
+| `artifact`                | string  | `''`         | ファイル読み込み前に実行する `actions/download-artifact` の `with` 句を YAML / JSON で記述する                                              |
+| `required`                | boolean | `true`       | `false` にするとカバレッジファイルが1件も見つからない場合に警告に留めてジョブを続行する。`true` の場合はエラーにする                                                    |
+| `step-summary`            | boolean | `true`       | `false` にすると Step Summary への出力を行わない                                                                                   |
+| `title`                   | string  | `'Coverage'` | Step Summary の見出しテキスト                                                                                                 |
+| `thresholds-lines`        | string  | `''`         | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし                                                                    |
+| `thresholds-methods`      | string  | `''`         | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                   |
+| `thresholds-conditionals` | string  | `''`         | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                    |
 | `uncovered-methods-limit` | string  | `'10'`       | Step Summary に表示する未カバーメソッドの最大件数、および `report` output の `statements` 配列の上限件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする |
 
 `artifact` には `actions/download-artifact` がサポートする任意のパラメータを指定できる。ただし `path` はアクション内部で
@@ -290,7 +290,8 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 
 Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。
 `methods`・`statements` は `<line>` 要素をタイプ別に全件抽出したもので、`covered: false` はカバーされていないことを示す。
-`statements` の件数は `uncovered-methods-limit` に従う。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は
+`statements` の件数は `uncovered-methods-limit` に従う。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、
+`files` の各要素は
 Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
 
 `files[].name` は Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。
