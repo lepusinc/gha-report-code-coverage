@@ -12,9 +12,12 @@
     "@actions/artifact": "^2.3.2",
     "@actions/core": "^1.11.1",
     "fast-xml-parser": "^5.2.3",
+    "glob": "^13.0.6",
+    "js-yaml": "^4.1.1",
     "minimatch": "^10.2.5"
   },
   "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.15.18",
     "@vercel/ncc": "^0.38.3",
     "typescript": "^5.8.3"
