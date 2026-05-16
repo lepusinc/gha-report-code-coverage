@@ -18,6 +18,12 @@
     "js-yaml": "^4.1.1",
     "minimatch": "^10.2.5"
   },
+  "overrides": {
+    "undici": "^6.25.0",
+    "@octokit/plugin-paginate-rest": "^9.2.2",
+    "@octokit/request": "^9.2.1",
+    "@octokit/request-error": "^6.1.7"
+  },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^22.15.18",
