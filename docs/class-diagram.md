@@ -6,7 +6,7 @@
 
 | 種別 | 名前 | 役割 |
 |---|---|---|
-| クラス | `ReportCodeCoverageAction` | アクション全体を表すクラス。初期化時に `getInput()` から `Config` を生成し、各ステップを順に呼び出す |
+| クラス | `ReportCodeCoverageAction` | アクション全体を表すクラス。`run()` 内で `Config` を生成し、各ステップを順に呼び出す |
 | クラス | `SourceResolveProcess` | ステップ 2。artifact ダウンロードと glob を確定し、解決済み glob パスを返す |
 | クラス | `CoverageLoadProcess` | ステップ 3。glob でファイルを探索・読み込み、`ParserFactory` 経由でパースして `CoverageData[]` を返す |
 | クラス | `CoverageAnalysisProcess` | ステップ 4。`CoverageData[]` を合算し `CoverageProcessorPipeline` で処理して `CoverageResult` を生成する。副作用として outputs を書き込む |
@@ -17,17 +17,15 @@ classDiagram
     direction LR
 
     class ReportCodeCoverageAction {
-        -Config config
-        +constructor(inputs: Record~string_string~)
         +run() Promise~void~
     }
 
     class SourceResolveProcess {
-        +run(config: Config) string
+        +run(config: Config) Promise~string~
     }
 
     class CoverageLoadProcess {
-        +run(glob: string) CoverageData[]
+        +run(glob: string, config: Config) Promise~CoverageData[]~
     }
 
     class CoverageAnalysisProcess {

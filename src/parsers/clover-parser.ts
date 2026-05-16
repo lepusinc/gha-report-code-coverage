@@ -67,7 +67,12 @@ export class CloverParser implements Parser {
       attributeNamePrefix: '@_',
     });
 
-    const parsed = xmlParser.parse(content) as CoverageRoot;
+    let parsed: CoverageRoot;
+    try {
+      parsed = xmlParser.parse(content) as CoverageRoot;
+    } catch (err) {
+      throw new Error(`Failed to parse Clover XML from ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
+    }
     const project: ProjectNode = parsed.coverage?.project ?? {};
     const metricsNode: MetricsNode = project.metrics ?? {};
 

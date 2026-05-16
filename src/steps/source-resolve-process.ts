@@ -1,3 +1,4 @@
+import * as fs from 'fs/promises';
 import * as path from 'path';
 import * as core from '@actions/core';
 import { DefaultArtifactClient, Artifact } from '@actions/artifact';
@@ -30,6 +31,9 @@ export class SourceResolveProcess {
         `'path' in artifact config is ignored; using '${DOWNLOAD_PATH}' instead.`,
       );
     }
+
+    await fs.rm(DOWNLOAD_PATH, { recursive: true, force: true });
+    await fs.mkdir(DOWNLOAD_PATH, { recursive: true });
 
     const client = new DefaultArtifactClient();
     const mergeMultiple = parsed['merge-multiple'] === true;

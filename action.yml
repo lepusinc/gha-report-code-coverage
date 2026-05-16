@@ -35,7 +35,7 @@ inputs:
     required: false
     default: ''
   uncovered-methods-limit:
-    description: 'Maximum number of uncovered methods to list in the report. Defaults to "10".'
+    description: 'Maximum number of uncovered methods to list in the report. Use "0" or "off" to disable the listing entirely. Defaults to "10".'
     required: false
     default: '10'
 

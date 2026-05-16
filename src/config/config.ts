@@ -52,6 +52,6 @@ export class Config {
     const trimmed = input.trim().toLowerCase();
     if (trimmed === '' || trimmed === '0' || trimmed === 'off') return 0;
     const value = parseInt(trimmed, 10);
-    return Number.isNaN(value) ? 0 : value;
+    return Number.isNaN(value) ? 0 : Math.max(0, value);
   }
 }

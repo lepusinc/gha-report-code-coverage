@@ -14,7 +14,9 @@ export class StepSummaryReporter implements Reporter {
     const includeConditionals = result.metrics.conditionals > 0;
     const includeUncoveredMethods = config.uncoveredMethodsLimit > 0;
 
-    if (result.files.length > 1) {
+    if (result.files.length === 0) {
+      core.summary.addRaw('_No coverage data found._');
+    } else if (result.files.length > 1) {
       for (const file of result.files) {
         core.summary.addHeading(file.name, 3);
         core.summary.addTable(this.buildMetricsTable(file.metrics, includeConditionals));
@@ -55,10 +57,14 @@ export class StepSummaryReporter implements Reporter {
     return `${rate.toFixed(1)}% (${covered}/${total})`;
   }
 
+  private escapeMarkdown(text: string): string {
+    return text.replace(/\|/g, '\\|').replace(/`/g, '\\`');
+  }
+
   private addUncoveredMethodsDetails(methods: SourceCodeMethod[]): void {
     const header = '| ファイル | 行 | メソッド |\n| --- | --- | --- |\n';
     const rows = methods
-      .map((m) => `| \`${m.file}\` | ${m.num} | \`${m.name}\` |`)
+      .map((m) => `| \`${this.escapeMarkdown(m.file)}\` | ${m.num} | \`${this.escapeMarkdown(m.name)}\` |`)
       .join('\n');
     const content = `\n${header}${rows}\n`;
     core.summary.addDetails(`未カバーのメソッド (${methods.length})`, content);

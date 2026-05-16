@@ -89,6 +89,11 @@ describe('Config.fromInputs', () => {
     expect(Config.fromInputs().uncoveredMethodsLimit).toBe(10);
   });
 
+  it("uncovered-methods-limit: '-1' → 0", () => {
+    setInput('uncovered-methods-limit', '-1');
+    expect(Config.fromInputs().uncoveredMethodsLimit).toBe(0);
+  });
+
   it("required: 'false' → false", () => {
     setInput('required', 'false');
     expect(Config.fromInputs().required).toBe(false);

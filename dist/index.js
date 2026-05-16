@@ -83997,16 +83997,13 @@ const coverage_load_process_1 = __nccwpck_require__(76082);
 const report_process_1 = __nccwpck_require__(88957);
 const source_resolve_process_1 = __nccwpck_require__(79927);
 class ReportCodeCoverageAction {
-    config;
-    constructor() {
-        this.config = config_1.Config.fromInputs();
-    }
     async run() {
         try {
-            const source = await new source_resolve_process_1.SourceResolveProcess().run(this.config);
-            const data = await new coverage_load_process_1.CoverageLoadProcess().run(source, this.config);
-            const result = new coverage_analysis_process_1.CoverageAnalysisProcess().run(data, this.config);
-            await new report_process_1.ReportProcess().run(result, this.config);
+            const config = config_1.Config.fromInputs();
+            const source = await new source_resolve_process_1.SourceResolveProcess().run(config);
+            const data = await new coverage_load_process_1.CoverageLoadProcess().run(source, config);
+            const result = new coverage_analysis_process_1.CoverageAnalysisProcess().run(data, config);
+            await new report_process_1.ReportProcess().run(result, config);
         }
         catch (err) {
             core.setFailed(err instanceof Error ? err.message : String(err));
@@ -84115,7 +84112,7 @@ class Config {
         if (trimmed === '' || trimmed === '0' || trimmed === 'off')
             return 0;
         const value = parseInt(trimmed, 10);
-        return Number.isNaN(value) ? 0 : value;
+        return Number.isNaN(value) ? 0 : Math.max(0, value);
     }
 }
 exports.Config = Config;
@@ -84367,7 +84364,13 @@ class CloverParser {
             ignoreAttributes: false,
             attributeNamePrefix: '@_',
         });
-        const parsed = xmlParser.parse(content);
+        let parsed;
+        try {
+            parsed = xmlParser.parse(content);
+        }
+        catch (err) {
+            throw new Error(`Failed to parse Clover XML from ${filePath}: ${err instanceof Error ? err.message : String(err)}`);
+        }
         const project = parsed.coverage?.project ?? {};
         const metricsNode = project.metrics ?? {};
         const metrics = new metrics_1.Metrics(toNumber(metricsNode['@_statements']), toNumber(metricsNode['@_coveredstatements']), toNumber(metricsNode['@_methods']), toNumber(metricsNode['@_coveredmethods']), toNumber(metricsNode['@_conditionals']), toNumber(metricsNode['@_coveredconditionals']));
@@ -84637,7 +84640,10 @@ class StepSummaryReporter {
         core.summary.addHeading(config.title, 2);
         const includeConditionals = result.metrics.conditionals > 0;
         const includeUncoveredMethods = config.uncoveredMethodsLimit > 0;
-        if (result.files.length > 1) {
+        if (result.files.length === 0) {
+            core.summary.addRaw('_No coverage data found._');
+        }
+        else if (result.files.length > 1) {
             for (const file of result.files) {
                 core.summary.addHeading(file.name, 3);
                 core.summary.addTable(this.buildMetricsTable(file.metrics, includeConditionals));
@@ -84675,10 +84681,13 @@ class StepSummaryReporter {
         const rate = total === 0 ? 0 : (covered / total) * 100;
         return `${rate.toFixed(1)}% (${covered}/${total})`;
     }
+    escapeMarkdown(text) {
+        return text.replace(/\|/g, '\\|').replace(/`/g, '\\`');
+    }
     addUncoveredMethodsDetails(methods) {
         const header = '| ファイル | 行 | メソッド |\n| --- | --- | --- |\n';
         const rows = methods
-            .map((m) => `| \`${m.file}\` | ${m.num} | \`${m.name}\` |`)
+            .map((m) => `| \`${this.escapeMarkdown(m.file)}\` | ${m.num} | \`${this.escapeMarkdown(m.name)}\` |`)
             .join('\n');
         const content = `\n${header}${rows}\n`;
         core.summary.addDetails(`未カバーのメソッド (${methods.length})`, content);
@@ -84937,6 +84946,7 @@ var __importStar = (this && this.__importStar) || (function () {
 })();
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SourceResolveProcess = void 0;
+const fs = __importStar(__nccwpck_require__(91943));
 const path = __importStar(__nccwpck_require__(16928));
 const core = __importStar(__nccwpck_require__(37484));
 const artifact_1 = __nccwpck_require__(76846);
@@ -84953,6 +84963,8 @@ class SourceResolveProcess {
         if (parsed.path !== undefined) {
             core.warning(`'path' in artifact config is ignored; using '${DOWNLOAD_PATH}' instead.`);
         }
+        await fs.rm(DOWNLOAD_PATH, { recursive: true, force: true });
+        await fs.mkdir(DOWNLOAD_PATH, { recursive: true });
         const client = new artifact_1.DefaultArtifactClient();
         const mergeMultiple = parsed['merge-multiple'] === true;
         const artifactId = parsed.id ?? parsed['artifact-id'];

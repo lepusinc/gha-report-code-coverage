@@ -30,7 +30,7 @@ PHPUnit / Pest / Jest / SimpleCov など、Clover XML を出力する任意の�
 
 ## ディレクトリ構成
 
-```
+```text
 gha-report-code-coverage/
   action.yml               # アクションのインターフェース定義（inputs / outputs / runs）
   src/
@@ -102,7 +102,7 @@ gha-report-code-coverage/
 
 将来的に Clover XML 以外のフォーマット（Istanbul / JaCoCo / lcov など）に対応することを見越し、パーサーパターンを採用する。
 
-```
+```text
 入力ファイル
     ↓
 [Parser] 各フォーマット固有の変換処理
@@ -239,7 +239,13 @@ npm run typecheck
 
 ## テスト方法
 
-現時点では自動テストは存在しない。以下の手順で手動確認する。
+### 自動テスト
+
+Vitest によるユニットテストが `test/` に存在する。
+
+```bash
+npm test
+```
 
 ### 実際のワークフローでのテスト
 

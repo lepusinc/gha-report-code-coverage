@@ -27,10 +27,8 @@ function makeData(name: string, metrics: Metrics, methods: SourceCodeMethod[] = 
 
 function getOutput(key: string): string | undefined {
   const mock = vi.mocked(core.setOutput);
-  for (const call of mock.mock.calls) {
-    if (call[0] === key) return call[1] as string;
-  }
-  return undefined;
+  const calls = mock.mock.calls.filter((c) => c[0] === key);
+  return calls.length > 0 ? (calls[calls.length - 1][1] as string) : undefined;
 }
 
 describe('CoverageAnalysisProcess', () => {
