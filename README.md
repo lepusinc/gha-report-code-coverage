@@ -1,19 +1,26 @@
-# gha-report-code-coverage
+# Report Code Coverage
 
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
-![Node.js 20](https://img.shields.io/badge/Node.js-20-339933?logo=node.js&logoColor=white)
+![Node.js 22](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Clover XML のカバレッジ artifact をダウンロードし、[GitHub Step Summary](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/adding-a-workflow-summary) にカバレッジ表を出力する GitHub Action。
+カバレッジ結果を [GitHub Step Summary](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/adding-a-workflow-summary) に表形式で出力する GitHub Action。
 
 ---
 
 ## 機能
 
-- **Clover XML 対応** — PHPUnit / Pest / Jest / SimpleCov など、Clover XML を出力する任意のテストフレームワークと組み合わせられる
-- **単一 / 複数 artifact 対応** — artifact ID を指定した単一取得と、glob パターンによる複数取得（matrix ビルド）の両方をサポート
-- **カバレッジ閾値チェック** — warn / fail の 2 段階閾値を設定可能。全 artifact のライン数を合算して判定する
-- **Step Summary 出力** — `@actions/core` の Summary API を使い、ヘッダー・テーブル形式で出力する
+- **ファイルベースの読み込み** — ワークスペース上のカバレッジファイルを glob パターンで指定して読み込む
+- **artifact ダウンロード** — `artifact` を指定すると、ファイル読み込みの前に `actions/download-artifact` でダウンロードを行う（付加機能）
+- **カバレッジ閾値チェック** — lines / methods それぞれに warn / fail の 2 段階閾値を設定可能。全ファイルの合算値に対して判定する
+
+### 対応フォーマット
+
+- **Clover XML** — PHPUnit / Pest / Jest / SimpleCov など、Clover XML を出力する任意のテストフレームワークと組み合わせられる
+
+### 対応出力
+
+- **GitHub Step Summary** — `@actions/core` の Summary API を使い、ヘッダー・テーブル形式で出力する
 
 ---
 
@@ -21,38 +28,38 @@ Clover XML のカバレッジ artifact をダウンロードし、[GitHub Step S
 
 ```yaml
 coverage-report:
-  needs: [test]
+  needs: [ test ]
   runs-on: ubuntu-latest
   if: ${{ !cancelled() }}
   steps:
     - uses: lepusinc/gha-report-code-coverage@v1
       with:
-        artifact-id: ${{ needs.test.outputs.coverage-artifact-id }}
+        file: '**/coverage.xml'
 ```
 
 ---
 
 ## 使い方
 
-### 単一 artifact（artifact ID 指定）
+### ローカルファイルを直接読み込む（基本）
 
-前のジョブがアップロードした artifact の ID を直接指定する。
+同一ジョブ内でテストを実行した場合など、ワークスペースにカバレッジファイルが存在するケース。
 
 ```yaml
 coverage-report:
-  needs: [test]
   runs-on: ubuntu-latest
-  if: ${{ !cancelled() }}
   steps:
+    - run: vendor/bin/phpunit  # coverage.xml をワークスペースに生成
     - uses: lepusinc/gha-report-code-coverage@v1
       with:
-        artifact-id: ${{ needs.test.outputs.coverage-artifact-id }}
+        file: '**/coverage.xml'
         title: 'Test Coverage'
+        thresholds-lines: '60 80'
 ```
 
-### matrix ビルド（パターン指定）
+### artifact からダウンロードして読み込む
 
-matrix で複数の artifact がアップロードされる場合、glob パターンで一括ダウンロードして合算レポートする。
+別ジョブでアップロードされた artifact をダウンロードしてから読み込むケース。
 
 ```yaml
 coverage-report:
@@ -62,28 +69,45 @@ coverage-report:
   steps:
     - uses: lepusinc/gha-report-code-coverage@v1
       with:
-        artifact-pattern: 'coverage *'
-        thresholds: '60 80'
+        artifact: |
+          name: ${{ needs.test.outputs.coverage-artifact-name }}
+        file: '**/coverage.xml'
+        thresholds-lines: '60 80'
 ```
 
-artifact ごとにサブセクション（`### <artifact名>`）が出力され、閾値チェックは全 artifact の合算ライン数に対して行われる。
+### 複数テストスイートを合算する
+
+ユニットテストと統合テストを別々に実行して artifact にアップロードし、カバレッジを合算レポートするケース。
+
+```yaml
+coverage-report:
+  needs: [unit-test, integration-test]
+  runs-on: ubuntu-latest
+  if: ${{ !cancelled() }}
+  steps:
+    - uses: lepusinc/gha-report-code-coverage@v1
+      with:
+        artifact: |
+          pattern: 'coverage-*'
+          merge-multiple: true
+        file: '**/coverage.xml'
+        thresholds-lines: '80 60'
+        thresholds-methods: '70 50'
+```
+
+Clover XML ファイルごとにサブセクション（`### <project name>`）が出力され、閾値チェックは全ファイルの合算値に対して行われる。
 
 ### カバレッジ閾値
 
-`thresholds` に `"<warn> <fail>"` 形式で 2 つの数値をスペース区切りで指定する。
+`thresholds-lines` / `thresholds-methods` / `thresholds-conditionals` に `"<warn> <fail>"` 形式で 2 つの数値をスペース区切りで指定する。それぞれ独立して設定でき、省略したメトリクスは閾値チェックを行わない。
 
 | 状況 | 動作 |
 |---|---|
-| 全体ライン率 ≥ warn | 何もしない |
-| 全体ライン率 < warn かつ ≥ fail | `::warning::` アノテーションを出力 |
-| 全体ライン率 < fail | `core.setFailed()` でジョブを失敗させる |
+| 全体率 ≥ warn | 何もしない |
+| 全体率 < warn かつ ≥ fail | `::warning::` アノテーションを出力 |
+| 全体率 < fail | `core.setFailed()` でジョブを失敗させる |
 
-```yaml
-- uses: lepusinc/gha-report-code-coverage@v1
-  with:
-    artifact-pattern: 'coverage *'
-    thresholds: '60 80'  # 60% 未満で警告、80% 未満で失敗
-```
+いずれかのメトリクスが `fail` を下回った場合にジョブを失敗させる。`warn` / `fail` の判定は各メトリクスで独立して行われる。
 
 ---
 
@@ -93,16 +117,111 @@ artifact ごとにサブセクション（`### <artifact名>`）が出力され�
 
 | 名前 | 型 | デフォルト | 説明 |
 |---|---|---|---|
-| `artifact-id` | string | `''` | ダウンロードする artifact の ID。`artifact-pattern` と排他 |
-| `artifact-pattern` | string | `''` | artifact 名にマッチする glob パターン（例: `"coverage *"`）。`artifact-id` と排他 |
+| `file` | string | — | カバレッジファイルにマッチする glob パターン（例: `"**/coverage.xml"`）（必須） |
+| `artifact` | string | `''` | ファイル読み込み前に実行する `actions/download-artifact` の `with` 句を YAML / JSON で記述する |
+| `required` | boolean | `true` | `false` にするとカバレッジファイルが1件も見つからない場合に警告に留めてジョブを続行する。`true` の場合はエラーにする |
+| `step-summary` | boolean | `true` | `false` にすると Step Summary への出力を行わない |
 | `title` | string | `'Coverage'` | Step Summary の見出しテキスト |
-| `thresholds` | string | `''` | warn / fail 閾値（例: `'60 80'`）。省略時は閾値チェックなし |
+| `thresholds-lines` | string | `''` | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし |
+| `thresholds-methods` | string | `''` | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし |
+| `thresholds-conditionals` | string | `''` | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし |
+| `uncovered-methods-limit` | string | `'10'` | Step Summary に表示する未カバーメソッドの最大件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする。`report` output の `uncoveredMethods` は本設定に関わらず全件含まれる |
 
-`artifact-id` と `artifact-pattern` はどちらか一方を指定する。両方指定した場合は `artifact-id` が優先される。
+`artifact` には `actions/download-artifact` がサポートする任意のパラメータを指定できる。ただし `path` はアクション内部で `/tmp/lepusinc/gha-report-code-coverage` に固定されるため、指定しても無視される（警告を出力）。
 
 ### outputs
 
-なし（Step Summary への書き込みと、閾値違反時のジョブ失敗が副作用）
+| 名前 | 型 | 説明 |
+|---|---|---|
+| `title` | string | レポートの見出しテキスト（`title` input の値） |
+| `lines` | number | 全ファイル合算のライン カバレッジ率。ファイルが0件の場合は `-` |
+| `methods` | number | 全ファイル合算のメソッド カバレッジ率。ファイルが0件の場合は `-` |
+| `conditionals` | number | 全ファイル合算の条件分岐カバレッジ率。計測されていない場合（全ファイルの `conditionals` 合計が `0`）またはファイルが0件の場合は出力しない |
+| `result` | string | 閾値チェック結果（`ok` / `warn` / `fail`）。lines / methods / conditionals いずれの閾値も未指定時は `ok`。ファイルが0件の場合は `-` |
+| `report` | JSON | ファイルごとの内訳を含む完全なレポート |
+
+`report` のフォーマット：
+
+```json
+{
+  "name": "Coverage",
+  "metrics": {
+    "statements": 1447,
+    "coveredstatements": 1234,
+    "methods": 159,
+    "coveredmethods": 145,
+    "conditionals": 0,
+    "coveredconditionals": 0
+  },
+  "result": "warn",
+  "thresholds": {
+    "lines": { "result": "warn", "warn": 90, "fail": 80 },
+    "methods": { "result": "ok", "warn": 70, "fail": 60 },
+    "conditionals": { "result": "ok", "warn": 50, "fail": 40 }
+  },
+  "uncoveredMethods": [
+    { "file": "src/UserService.php", "num": 25, "name": "delete" },
+    { "file": "src/OrderService.php", "num": 48, "name": "cancel" }
+  ],
+  "uncoveredStatements": [
+    { "file": "src/UserService.php", "num": 26 },
+    { "file": "src/UserService.php", "num": 27 }
+  ],
+  "files": [
+    {
+      "name": "Unit Tests",
+      "metrics": {
+        "statements": 800,
+        "coveredstatements": 650,
+        "methods": 90,
+        "coveredmethods": 80,
+        "conditionals": 0,
+        "coveredconditionals": 0
+      },
+      "result": "warn",
+      "thresholds": {
+        "lines": { "result": "warn", "warn": 90, "fail": 80 },
+        "methods": { "result": "ok", "warn": 70, "fail": 60 },
+        "conditionals": { "result": "ok", "warn": 50, "fail": 40 }
+      },
+      "uncoveredMethods": [
+        { "file": "src/UserService.php", "num": 25, "name": "delete" }
+      ],
+      "uncoveredStatements": [
+        { "file": "src/UserService.php", "num": 26 }
+      ]
+    },
+    {
+      "name": "Integration Tests",
+      "metrics": {
+        "statements": 647,
+        "coveredstatements": 584,
+        "methods": 69,
+        "coveredmethods": 65,
+        "conditionals": 0,
+        "coveredconditionals": 0
+      },
+      "result": "ok",
+      "thresholds": {
+        "lines": { "result": "ok", "warn": 90, "fail": 80 },
+        "methods": { "result": "ok", "warn": 70, "fail": 60 }
+      },
+      "uncoveredMethods": [
+        { "file": "src/OrderService.php", "num": 48, "name": "cancel" }
+      ],
+      "uncoveredStatements": [
+        { "file": "src/OrderService.php", "num": 49 }
+      ]
+    }
+  ]
+}
+```
+
+Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。`uncoveredMethods`・`uncoveredStatements` は `<line>` 要素のうち `count="0"` のものをタイプ別にフィルタリングしたもの。`uncoveredStatements` は上限 30 件。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
+
+`files[].name` は Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。
+
+副作用：Step Summary への書き込み（`step-summary: true` 時）、閾値違反時のジョブ失敗
 
 ### Step Summary の出力形式
 
@@ -111,49 +230,50 @@ artifact ごとにサブセクション（`### <artifact名>`）が出力され�
 
 | | Coverage |
 | --- | --- |
-| Lines   | 85.3% (1234/1447) |
-| Methods | 91.2% (145/159) |
+| Lines       | 85.3% (1234/1447) |
+| Methods     | 91.2% (145/159)  |
+| Conditionals| 72.4% (100/138)  |
 ```
 
-matrix ビルドで複数 artifact がある場合:
+全ファイルの `conditionals` 合計が `0` の場合（計測無効）は Conditionals 行を出力しない。
+
+複数ファイルがある場合:
 
 ```markdown
 ## Coverage
 
-### coverage (PHP 8.3, Laravel 11.*)
+### Unit Tests
 
 | | Coverage |
 | --- | --- |
-| Lines   | 85.3% (1234/1447) |
-| Methods | 91.2% (145/159) |
+| Lines   | 81.3% (650/800) |
+| Methods | 88.9% (80/90)  |
 
-### coverage (PHP 8.4, Laravel 11.*)
+<details><summary>未カバーのメソッド (1)</summary>
+
+| ファイル | 行 | メソッド |
+| --- | --- | --- |
+| `src/UserService.php` | 25 | `delete` |
+
+</details>
+
+### Integration Tests
 
 ...
 ```
+
+サブ見出しは Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。未カバーのメソッド一覧は `<details>` で折りたたんで出力する。`uncovered-methods-limit` が `'0'` または `'off'` の場合は出力しない。
 
 ---
 
 ## 必要なパーミッション
 
-artifact をダウンロードするため、ジョブに `actions: read` 権限が必要。
+`artifact` を使用する場合、ジョブに `actions: read` 権限が必要。
 
 ```yaml
 permissions:
   actions: read
 ```
-
----
-
-## 技術スタック
-
-| 役割 | パッケージ |
-|---|---|
-| GitHub Actions SDK | `@actions/core`, `@actions/artifact` |
-| Clover XML パース | `fast-xml-parser` |
-| artifact 名マッチング | `minimatch` |
-| ビルド（バンドル） | `@vercel/ncc` |
-| 型チェック | `typescript` |
 
 ---
 
