@@ -84971,8 +84971,12 @@ class SourceResolveProcess {
         await fs.mkdir(DOWNLOAD_PATH, { recursive: true });
         const client = new artifact_1.DefaultArtifactClient();
         const mergeMultiple = parsed['merge-multiple'] === true;
-        const artifactId = parsed.id ?? parsed['artifact-id'];
+        const rawArtifactId = parsed.id ?? parsed['artifact-id'];
+        const artifactId = rawArtifactId !== undefined ? Number(rawArtifactId) : undefined;
         if (artifactId !== undefined) {
+            if (!Number.isFinite(artifactId)) {
+                throw new Error(`artifact 'id' must be a finite number, got: ${rawArtifactId}`);
+            }
             await client.downloadArtifact(artifactId, { path: DOWNLOAD_PATH });
         }
         else if (parsed.name !== undefined) {

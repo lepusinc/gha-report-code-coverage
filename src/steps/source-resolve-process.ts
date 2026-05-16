@@ -38,9 +38,13 @@ export class SourceResolveProcess {
 
     const client = new DefaultArtifactClient();
     const mergeMultiple = parsed['merge-multiple'] === true;
-    const artifactId = parsed.id ?? parsed['artifact-id'];
+    const rawArtifactId = parsed.id ?? parsed['artifact-id'];
+    const artifactId = rawArtifactId !== undefined ? Number(rawArtifactId) : undefined;
 
     if (artifactId !== undefined) {
+      if (!Number.isFinite(artifactId)) {
+        throw new Error(`artifact 'id' must be a finite number, got: ${rawArtifactId}`);
+      }
       await client.downloadArtifact(artifactId, { path: DOWNLOAD_PATH });
     } else if (parsed.name !== undefined) {
       const list = await client.listArtifacts();
