@@ -32,10 +32,40 @@ PHPUnit / Pest / Jest / SimpleCov など、Clover XML を出力する任意の�
 
 ```
 gha-report-code-coverage/
-  action.yml          # アクションのインターフェース定義（inputs / outputs / runs）
+  action.yml               # アクションのインターフェース定義（inputs / outputs / runs）
   src/
-    main.ts           # エントリーポイント。ダウンロード→パース→outputs設定→サマリー出力
-    clover.ts         # Clover XML マッパー（CoverageReport 型への変換）
+    main.ts                # エントリーポイント
+    action.ts              # ReportCodeCoverageAction
+    foundation/
+      jsonable.ts          # Jsonable インターフェース
+    config/
+      config.ts            # Config
+      thresholds.ts        # Thresholds, ThresholdValue
+    models/
+      metrics.ts           # Metrics
+      source-code.ts       # SourceCode, SourceCodeMethod, SourceCodeStatement
+      coverage.ts          # CoverageBase, CoverageData, CoverageResult
+      threshold-result.ts  # ThresholdResult, ThresholdResults
+    parsers/
+      parser.ts            # Parser インターフェース
+      clover-parser.ts     # CloverParser
+      parser-factory.ts    # ParserFactory
+    processors/
+      coverage-processor.ts           # CoverageProcessor インターフェース
+      coverage-processor-pipeline.ts  # CoverageProcessorPipeline
+      coverage-rate-calculator.ts     # CoverageRateCalculator
+      threshold-evaluator.ts          # ThresholdEvaluator
+      uncovered-method-filter.ts      # UncoveredMethodFilter
+    reporters/
+      reporter.ts                # Reporter インターフェース
+      aggregate-reporter.ts      # AggregateReporter
+      step-summary-reporter.ts   # StepSummaryReporter
+      pull-request-reporter.ts   # PullRequestReporter
+    steps/
+      source-resolve-process.ts    # SourceResolveProcess
+      coverage-load-process.ts     # CoverageLoadProcess
+      coverage-analysis-process.ts # CoverageAnalysisProcess
+      report-process.ts            # ReportProcess
   dist/
     index.js          # ncc でバンドルされた実行ファイル（コミット対象）
     index.js.map      # ソースマップ
@@ -53,50 +83,57 @@ gha-report-code-coverage/
 | ファイル | 役割 |
 |---|---|
 | `action.yml` | inputs / outputs の定義、`runs.using: node22` で `dist/index.js` を指定 |
-| `src/main.ts` | artifact ダウンロード・ファイル探索・outputs 設定・Summary 書き込み・閾値チェックの制御フロー |
-| `src/clover.ts` | `fast-xml-parser` を使った Clover XML → `CoverageReport` 型へのマッパー |
+| `src/main.ts` | エントリーポイント。`ReportCodeCoverageAction` を生成して実行する |
+| `src/action.ts` | `ReportCodeCoverageAction`。初期化・各ステップの呼び出しを担う |
+| `src/foundation/` | プロジェクト全体の基盤となるインターフェース（`Jsonable` など） |
+| `src/config/` | `Config`・`Thresholds`・`ThresholdValue` |
+| `src/models/` | データモデル群（`CoverageBase`・`CoverageData`・`CoverageResult` など） |
+| `src/parsers/` | `Parser` インターフェースと実装（`CloverParser`・`ParserFactory`） |
+| `src/processors/` | `CoverageProcessor` インターフェースと実装 |
+| `src/reporters/` | `Reporter` インターフェースと実装 |
+| `src/steps/` | 処理ステップクラス群（`SourceResolveProcess` 〜 `ReportProcess`） |
 | `dist/index.js` | `@vercel/ncc` でバンドルした単一ファイル。ランナー上で `node dist/index.js` として実行される |
 
 ---
 
 ## 設計メモ
 
-### フォーマットマッパーアーキテクチャ
+### フォーマットパーサーアーキテクチャ
 
-将来的に Clover XML 以外のフォーマット（Istanbul / JaCoCo / lcov など）に対応することを見越し、マッパーパターンを採用する。
+将来的に Clover XML 以外のフォーマット（Istanbul / JaCoCo / lcov など）に対応することを見越し、パーサーパターンを採用する。
 
 ```
 入力ファイル
     ↓
-[Mapper] 各フォーマット固有の変換処理
+[Parser] 各フォーマット固有の変換処理
     ↓
-内部レポート形式（CoverageReport 型）
+内部レポート形式（CoverageData 型）
     ↓
 [出力先] Step Summary / outputs / 将来の出力先
 ```
 
-- 各フォーマットに対応するマッパーが内部レポート形式（`CoverageReport` 型）へ変換する責務を持つ
+- 各フォーマットに対応するパーサーが内部レポート形式（`CoverageData` 型）へ変換する責務を持つ
 - アクション本体（閾値チェック・outputs 設定・Step Summary 出力）は内部レポート形式のみを扱い、入力フォーマットを意識しない
-- 現時点での実装は Clover XML マッパーのみ
+- 現時点での実装は Clover XML パーサーのみ
 
 #### 内部レポート形式と Clover XML の関係
 
-現在の内部レポート形式は Clover XML の構造に準じているが、あくまで内部の正規形式として定義する。他フォーマットのマッパーはこの正規形式へのマッピングが責務となる。
+現在の内部レポート形式は Clover XML の構造に準じているが、あくまで内部の正規形式として定義する。他フォーマットのパーサーはこの正規形式へのパースが責務となる。
 
-#### マッパーの選択
+#### パーサーの選択
 
 入力ファイルのフォーマットは将来的に `format` input で明示指定する、または拡張子・内容から自動判別することを想定する（現時点では Clover XML 固定のため不要）。
 
 ### `report` の構造方針
 
-`report` output の JSON は内部レポート形式（`CoverageReport` 型）をそのままシリアライズしたもの。Clover XML マッパーは以下のルールで変換する：
+`report` output の JSON は内部レポート形式（`CoverageData` 型）をそのままシリアライズしたもの。Clover XML パーサーは以下のルールで変換する：
 
 - `<metrics>` 属性はそのままフィールド名に使用する
-- `<line>` 要素は `count="0"` のもののみ抽出してタイプ別にフィルタリングする
-  - `uncoveredMethods` — `type="method"` かつ `count="0"`
-  - `uncoveredStatements` — `type="stmt"` かつ `count="0"`（上限 30 件）
+- `<line>` 要素はタイプ別に `methods` / `statements` として全件抽出し、`covered` フラグを付与する
+  - `methods` — `type="method"` の `<line>` 要素。`count="0"` の場合 `covered: false`
+  - `statements` — `type="stmt"` の `<line>` 要素。`count="0"` の場合 `covered: false`（上限 30 件）
 
-`result`・`thresholds` はマッパーではなくアクション本体が付加する。
+`result`・`thresholds` はパーサーではなくアクション本体が付加する。
 
 ### `file` glob の評価
 
@@ -123,12 +160,45 @@ file:          **/coverage.xml
 
 ### 動作フローと出力アーキテクチャ
 
-1. `artifact` が指定されていれば `actions/download-artifact` でダウンロードする
-2. `file` にマッチするカバレッジファイルをパースして集計する
-3. 集計結果を outputs に設定する（**基本動作**）
-4. `step-summary: true` であれば outputs を整形して Step Summary に書き込む
+#### 処理ステップ
 
-outputs が唯一の出力ソースであり、Step Summary やその他の出力先はすべて outputs を参照して整形・書き込みを行う。将来 PR コメントなどの出力先を追加する場合も、この構造を踏襲する。
+| ステップ | 概要 | 入力 | 出力 | 副作用 |
+|---|---|---|---|---|
+| **1. 初期処理** | inputs をパースして `Config` を生成 | `getInput()` の生文字列 | `Config` | — |
+| **2. ソースファイル解決** | artifact ダウンロードと glob の確定 | `Config.artifact`、`Config.file` | 解決済み glob（string） | — |
+| **3. ロード・変換** | ファイル探索・読み込み・パーサー変換 | 解決済み glob | `CoverageData[]` | — |
+| **4. 集計** | 合算・閾値チェック・`CoverageResult` 生成 | `CoverageData[]`、`Config.thresholds` | `CoverageResult` | outputs 書き込み |
+| **5. 出力** | 有効な `Reporter` を順に実行 | `CoverageResult`、`Config` | — | 各 Reporter の出力処理（副作用） |
+
+outputs が唯一の出力ソースであり、Step Summary やその他の出力先はすべて outputs を参照して整形・書き込みを行う。将来 PR コメントなどの出力先を追加する場合、`Reporter` の実装を追加するだけでよい。
+
+#### Reporter アーキテクチャ
+
+```
+Reporter（interface）
+├── StepSummaryReporter   // GitHub Step Summary への出力（Config.stepSummary が true の場合に有効）
+└── PullRequestReporter   // PR コメントへの出力（将来実装）
+```
+
+`Reporter` インターフェースは `report(result: CoverageResult, config: Config): Promise<void>` を持つ。ステップ 5 では有効な `Reporter` の配列を順に実行する。
+
+
+### エラーハンドリング
+
+エラーハンドリングは `ReportCodeCoverageAction` で一元管理する。各ステップクラス（`SourceResolveProcess` など）はエラーをそのままスローし、キャッチ・ハンドリングは `ReportCodeCoverageAction.run()` が担う。
+
+```
+ReportCodeCoverageAction.run()
+  try
+    SourceResolveProcess.run()   // エラーはスロー
+    CoverageLoadProcess.run()    // エラーはスロー
+    CoverageAnalysisProcess.run() // エラーはスロー
+    ReportProcess.run()          // エラーはスロー
+  catch
+    core.setFailed(error)        // GitHub Actions のジョブ失敗として報告
+```
+
+各ステップは入出力の処理に専念し、エラーの種別判定（想定内・想定外）や `core.setFailed()` の呼び出しは `ReportCodeCoverageAction` のみが行う。
 
 ### `dist/index.js` をリポジトリにコミットする理由
 

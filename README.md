@@ -159,13 +159,13 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
     "methods": { "result": "ok", "warn": 70, "fail": 60 },
     "conditionals": { "result": "ok", "warn": 50, "fail": 40 }
   },
-  "uncoveredMethods": [
-    { "file": "src/UserService.php", "num": 25, "name": "delete" },
-    { "file": "src/OrderService.php", "num": 48, "name": "cancel" }
+  "methods": [
+    { "file": "src/UserService.php", "num": 25, "name": "delete", "covered": false },
+    { "file": "src/OrderService.php", "num": 48, "name": "cancel", "covered": false }
   ],
-  "uncoveredStatements": [
-    { "file": "src/UserService.php", "num": 26 },
-    { "file": "src/UserService.php", "num": 27 }
+  "statements": [
+    { "file": "src/UserService.php", "num": 26, "covered": false },
+    { "file": "src/UserService.php", "num": 27, "covered": false }
   ],
   "files": [
     {
@@ -184,11 +184,11 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
         "methods": { "result": "ok", "warn": 70, "fail": 60 },
         "conditionals": { "result": "ok", "warn": 50, "fail": 40 }
       },
-      "uncoveredMethods": [
-        { "file": "src/UserService.php", "num": 25, "name": "delete" }
+      "methods": [
+        { "file": "src/UserService.php", "num": 25, "name": "delete", "covered": false }
       ],
-      "uncoveredStatements": [
-        { "file": "src/UserService.php", "num": 26 }
+      "statements": [
+        { "file": "src/UserService.php", "num": 26, "covered": false }
       ]
     },
     {
@@ -206,18 +206,18 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
         "lines": { "result": "ok", "warn": 90, "fail": 80 },
         "methods": { "result": "ok", "warn": 70, "fail": 60 }
       },
-      "uncoveredMethods": [
-        { "file": "src/OrderService.php", "num": 48, "name": "cancel" }
+      "methods": [
+        { "file": "src/OrderService.php", "num": 48, "name": "cancel", "covered": false }
       ],
-      "uncoveredStatements": [
-        { "file": "src/OrderService.php", "num": 49 }
+      "statements": [
+        { "file": "src/OrderService.php", "num": 49, "covered": false }
       ]
     }
   ]
 }
 ```
 
-Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。`uncoveredMethods`・`uncoveredStatements` は `<line>` 要素のうち `count="0"` のものをタイプ別にフィルタリングしたもの。`uncoveredStatements` は上限 30 件。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
+Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。`methods`・`statements` は `<line>` 要素をタイプ別に全件抽出したもので、`covered: false` はカバーされていないことを示す。`statements` は上限 30 件。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
 
 `files[].name` は Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。
 
