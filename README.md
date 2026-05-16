@@ -4,14 +4,15 @@
 ![Node.js 22](https://img.shields.io/badge/Node.js-22-339933?logo=node.js&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-カバレッジ結果を [GitHub Step Summary](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/adding-a-workflow-summary) に表形式で出力する GitHub Action。
+カバレッジ結果を [GitHub Step Summary](https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/adding-a-workflow-summary)
+に表形式で出力する GitHub Action。
 
 ---
 
 ## 機能
 
 - **ファイルベースの読み込み** — ワークスペース上のカバレッジファイルを glob パターンで指定して読み込む
-- **artifact ダウンロード** — `artifact` を指定すると、ファイル読み込みの前に `actions/download-artifact` でダウンロードを行う（付加機能）
+- **artifact ダウンロード** — `artifact` を指定すると、ファイル読み込みの前に `actions/download-artifact`でダウンロードを行う（付加機能）
 - **カバレッジ閾値チェック** — lines / methods それぞれに warn / fail の 2 段階閾値を設定可能。全ファイルの合算値に対して判定する
 
 ### 対応フォーマット
@@ -63,7 +64,7 @@ coverage-report:
 
 ```yaml
 coverage-report:
-  needs: [test]
+  needs: [ test ]
   runs-on: ubuntu-latest
   if: ${{ !cancelled() }}
   steps:
@@ -81,7 +82,7 @@ coverage-report:
 
 ```yaml
 coverage-report:
-  needs: [unit-test, integration-test]
+  needs: [ unit-test, integration-test ]
   runs-on: ubuntu-latest
   if: ${{ !cancelled() }}
   steps:
@@ -99,13 +100,14 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 
 ### カバレッジ閾値
 
-`thresholds-lines` / `thresholds-methods` / `thresholds-conditionals` に `"<warn> <fail>"` 形式で 2 つの数値をスペース区切りで指定する。それぞれ独立して設定でき、省略したメトリクスは閾値チェックを行わない。
+`thresholds-lines` / `thresholds-methods` / `thresholds-conditionals` に `"<warn> <fail>"` 形式で 2
+つの数値をスペース区切りで指定する。それぞれ独立して設定でき、省略したメトリクスは閾値チェックを行わない。
 
-| 状況 | 動作 |
-|---|---|
-| 全体率 ≥ warn | 何もしない |
-| 全体率 < warn かつ ≥ fail | `::warning::` アノテーションを出力 |
-| 全体率 < fail | `core.setFailed()` でジョブを失敗させる |
+| 状況                   | 動作                            |
+|----------------------|-------------------------------|
+| 全体率 ≥ warn           | 何もしない                         |
+| 全体率 < warn かつ ≥ fail | `::warning::` アノテーションを出力      |
+| 全体率 < fail           | `core.setFailed()` でジョブを失敗させる |
 
 いずれかのメトリクスが `fail` を下回った場合にジョブを失敗させる。`warn` / `fail` の判定は各メトリクスで独立して行われる。
 
@@ -115,30 +117,31 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 
 ### inputs
 
-| 名前 | 型 | デフォルト | 説明 |
-|---|---|---|---|
-| `file` | string | — | カバレッジファイルにマッチする glob パターン（例: `"**/coverage.xml"`）（必須） |
-| `artifact` | string | `''` | ファイル読み込み前に実行する `actions/download-artifact` の `with` 句を YAML / JSON で記述する |
-| `required` | boolean | `true` | `false` にするとカバレッジファイルが1件も見つからない場合に警告に留めてジョブを続行する。`true` の場合はエラーにする |
-| `step-summary` | boolean | `true` | `false` にすると Step Summary への出力を行わない |
-| `title` | string | `'Coverage'` | Step Summary の見出しテキスト |
-| `thresholds-lines` | string | `''` | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし |
-| `thresholds-methods` | string | `''` | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし |
-| `thresholds-conditionals` | string | `''` | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし |
-| `uncovered-methods-limit` | string | `'10'` | Step Summary に表示する未カバーメソッドの最大件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする。`report` output の `uncoveredMethods` は本設定に関わらず全件含まれる |
+| 名前                        | 型       | デフォルト        | 説明                                                                                                                              |
+|---------------------------|---------|--------------|---------------------------------------------------------------------------------------------------------------------------------|
+| `file`                    | string  | —            | カバレッジファイルにマッチする glob パターン（例: `"**/coverage.xml"`）（必須）                                                                           |
+| `artifact`                | string  | `''`         | ファイル読み込み前に実行する `actions/download-artifact` の `with` 句を YAML / JSON で記述する                                                        |
+| `required`                | boolean | `true`       | `false` にするとカバレッジファイルが1件も見つからない場合に警告に留めてジョブを続行する。`true` の場合はエラーにする                                                              |
+| `step-summary`            | boolean | `true`       | `false` にすると Step Summary への出力を行わない                                                                                             |
+| `title`                   | string  | `'Coverage'` | Step Summary の見出しテキスト                                                                                                           |
+| `thresholds-lines`        | string  | `''`         | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし                                                                              |
+| `thresholds-methods`      | string  | `''`         | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                             |
+| `thresholds-conditionals` | string  | `''`         | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                              |
+| `uncovered-methods-limit` | string  | `'10'`       | Step Summary に表示する未カバーメソッドの最大件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする。`report` output の `uncoveredMethods` は本設定に関わらず全件含まれる |
 
-`artifact` には `actions/download-artifact` がサポートする任意のパラメータを指定できる。ただし `path` はアクション内部で `/tmp/lepusinc/gha-report-code-coverage` に固定されるため、指定しても無視される（警告を出力）。
+`artifact` には `actions/download-artifact` がサポートする任意のパラメータを指定できる。ただし `path` はアクション内部で
+`/tmp/lepusinc/gha-report-code-coverage` に固定されるため、指定しても無視される（警告を出力）。
 
 ### outputs
 
-| 名前 | 型 | 説明 |
-|---|---|---|
-| `title` | string | レポートの見出しテキスト（`title` input の値） |
-| `lines` | number | 全ファイル合算のライン カバレッジ率。ファイルが0件の場合は `-` |
-| `methods` | number | 全ファイル合算のメソッド カバレッジ率。ファイルが0件の場合は `-` |
-| `conditionals` | number | 全ファイル合算の条件分岐カバレッジ率。計測されていない場合（全ファイルの `conditionals` 合計が `0`）またはファイルが0件の場合は出力しない |
-| `result` | string | 閾値チェック結果（`ok` / `warn` / `fail`）。lines / methods / conditionals いずれの閾値も未指定時は `ok`。ファイルが0件の場合は `-` |
-| `report` | JSON | ファイルごとの内訳を含む完全なレポート |
+| 名前             | 型      | 説明                                                                                                |
+|----------------|--------|---------------------------------------------------------------------------------------------------|
+| `title`        | string | レポートの見出しテキスト（`title` input の値）                                                                    |
+| `lines`        | number | 全ファイル合算のライン カバレッジ率。ファイルが0件の場合は `-`                                                                |
+| `methods`      | number | 全ファイル合算のメソッド カバレッジ率。ファイルが0件の場合は `-`                                                               |
+| `conditionals` | number | 全ファイル合算の条件分岐カバレッジ率。計測されていない場合（全ファイルの `conditionals` 合計が `0`）またはファイルが0件の場合は出力しない                   |
+| `result`       | string | 閾値チェック結果（`ok` / `warn` / `fail`）。lines / methods / conditionals いずれの閾値も未指定時は `ok`。ファイルが0件の場合は `-` |
+| `report`       | JSON   | ファイルごとの内訳を含む完全なレポート                                                                               |
 
 `report` のフォーマット：
 
@@ -155,17 +158,47 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
   },
   "result": "warn",
   "thresholds": {
-    "lines": { "result": "warn", "warn": 90, "fail": 80 },
-    "methods": { "result": "ok", "warn": 70, "fail": 60 },
-    "conditionals": { "result": "ok", "warn": 50, "fail": 40 }
+    "lines": {
+      "result": "warn",
+      "warn": 90,
+      "fail": 80
+    },
+    "methods": {
+      "result": "ok",
+      "warn": 70,
+      "fail": 60
+    },
+    "conditionals": {
+      "result": "ok",
+      "warn": 50,
+      "fail": 40
+    }
   },
   "methods": [
-    { "file": "src/UserService.php", "num": 25, "name": "delete", "covered": false },
-    { "file": "src/OrderService.php", "num": 48, "name": "cancel", "covered": false }
+    {
+      "file": "src/UserService.php",
+      "num": 25,
+      "name": "delete",
+      "covered": false
+    },
+    {
+      "file": "src/OrderService.php",
+      "num": 48,
+      "name": "cancel",
+      "covered": false
+    }
   ],
   "statements": [
-    { "file": "src/UserService.php", "num": 26, "covered": false },
-    { "file": "src/UserService.php", "num": 27, "covered": false }
+    {
+      "file": "src/UserService.php",
+      "num": 26,
+      "covered": false
+    },
+    {
+      "file": "src/UserService.php",
+      "num": 27,
+      "covered": false
+    }
   ],
   "files": [
     {
@@ -180,15 +213,36 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
       },
       "result": "warn",
       "thresholds": {
-        "lines": { "result": "warn", "warn": 90, "fail": 80 },
-        "methods": { "result": "ok", "warn": 70, "fail": 60 },
-        "conditionals": { "result": "ok", "warn": 50, "fail": 40 }
+        "lines": {
+          "result": "warn",
+          "warn": 90,
+          "fail": 80
+        },
+        "methods": {
+          "result": "ok",
+          "warn": 70,
+          "fail": 60
+        },
+        "conditionals": {
+          "result": "ok",
+          "warn": 50,
+          "fail": 40
+        }
       },
       "methods": [
-        { "file": "src/UserService.php", "num": 25, "name": "delete", "covered": false }
+        {
+          "file": "src/UserService.php",
+          "num": 25,
+          "name": "delete",
+          "covered": false
+        }
       ],
       "statements": [
-        { "file": "src/UserService.php", "num": 26, "covered": false }
+        {
+          "file": "src/UserService.php",
+          "num": 26,
+          "covered": false
+        }
       ]
     },
     {
@@ -203,21 +257,41 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
       },
       "result": "ok",
       "thresholds": {
-        "lines": { "result": "ok", "warn": 90, "fail": 80 },
-        "methods": { "result": "ok", "warn": 70, "fail": 60 }
+        "lines": {
+          "result": "ok",
+          "warn": 90,
+          "fail": 80
+        },
+        "methods": {
+          "result": "ok",
+          "warn": 70,
+          "fail": 60
+        }
       },
       "methods": [
-        { "file": "src/OrderService.php", "num": 48, "name": "cancel", "covered": false }
+        {
+          "file": "src/OrderService.php",
+          "num": 48,
+          "name": "cancel",
+          "covered": false
+        }
       ],
       "statements": [
-        { "file": "src/OrderService.php", "num": 49, "covered": false }
+        {
+          "file": "src/OrderService.php",
+          "num": 49,
+          "covered": false
+        }
       ]
     }
   ]
 }
 ```
 
-Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。`methods`・`statements` は `<line>` 要素をタイプ別に全件抽出したもので、`covered: false` はカバーされていないことを示す。`statements` は上限 30 件。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
+Clover XML を JSON に変換した構造とする。`metrics` の各フィールドは Clover XML の `<metrics>` 属性名をそのまま使用する。
+`methods`・`statements` は `<line>` 要素をタイプ別に全件抽出したもので、`covered: false` はカバーされていないことを示す。
+`statements` は上限 30 件。`result`・`thresholds` はアクション独自の付加情報。トップレベルは全ファイルの合算、`files` の各要素は
+Clover XML ファイルごとの値。`thresholds` は指定されたメトリクスのみ含まれ、閾値未指定の場合は空オブジェクトになる。
 
 `files[].name` は Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。
 
@@ -228,11 +302,11 @@ Clover XML を JSON に変換した構造とする。`metrics` の各フィー�
 ```markdown
 ## Coverage
 
-| | Coverage |
-| --- | --- |
-| Lines       | 85.3% (1234/1447) |
-| Methods     | 91.2% (145/159)  |
-| Conditionals| 72.4% (100/138)  |
+| Metrics      | Coverage          |
+|--------------|-------------------|
+| Lines        | 85.3% (1234/1447) |
+| Methods      | 91.2% (145/159)   |
+| Conditionals | 72.4% (100/138)   |
 ```
 
 全ファイルの `conditionals` 合計が `0` の場合（計測無効）は Conditionals 行を出力しない。
@@ -244,15 +318,15 @@ Clover XML を JSON に変換した構造とする。`metrics` の各フィー�
 
 ### Unit Tests
 
-| | Coverage |
-| --- | --- |
+| Metrics | Coverage        |
+|---------|-----------------|
 | Lines   | 81.3% (650/800) |
-| Methods | 88.9% (80/90)  |
+| Methods | 88.9% (80/90)   |
 
 <details><summary>未カバーのメソッド (1)</summary>
 
-| ファイル | 行 | メソッド |
-| --- | --- | --- |
+| ファイル                  | 行  | メソッド     |
+|-----------------------|----|----------|
 | `src/UserService.php` | 25 | `delete` |
 
 </details>
@@ -262,7 +336,8 @@ Clover XML を JSON に変換した構造とする。`metrics` の各フィー�
 ...
 ```
 
-サブ見出しは Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。未カバーのメソッド一覧は `<details>` で折りたたんで出力する。`uncovered-methods-limit` が `'0'` または `'off'` の場合は出力しない。
+サブ見出しは Clover XML の `<project name="...">` を使用する。未設定または空の場合はファイルパスにフォールバックする。未カバーのメソッド一覧は
+`<details>` で折りたたんで出力する。`uncovered-methods-limit` が `'0'` または `'off'` の場合は出力しない。
 
 ---
 
