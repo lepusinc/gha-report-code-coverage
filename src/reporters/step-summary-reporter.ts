@@ -5,8 +5,6 @@ import { Metrics } from '../models/metrics';
 import { SourceCodeMethod } from '../models/source-code';
 import { Reporter } from './reporter';
 
-type SummaryTableRow = (string | { data: string; header?: boolean })[];
-
 export class StepSummaryReporter implements Reporter {
   async report(result: CoverageResult, config: Config): Promise<void> {
     core.summary.addHeading(config.title, 2);
@@ -19,13 +17,13 @@ export class StepSummaryReporter implements Reporter {
     } else if (result.files.length > 1) {
       for (const file of result.files) {
         core.summary.addHeading(file.name, 3);
-        core.summary.addTable(this.buildMetricsTable(file.metrics, includeConditionals));
+        core.summary.addRaw(this.buildMetricsTable(file.metrics, includeConditionals), true);
         if (includeUncoveredMethods && file.methods.length > 0) {
           this.addUncoveredMethodsDetails(file.methods);
         }
       }
     } else {
-      core.summary.addTable(this.buildMetricsTable(result.metrics, includeConditionals));
+      core.summary.addRaw(this.buildMetricsTable(result.metrics, includeConditionals), true);
       if (includeUncoveredMethods && result.methods.length > 0) {
         this.addUncoveredMethodsDetails(result.methods);
       }
@@ -34,27 +32,31 @@ export class StepSummaryReporter implements Reporter {
     await core.summary.write();
   }
 
-  private buildMetricsTable(metrics: Metrics, includeConditionals: boolean): SummaryTableRow[] {
-    const rows: SummaryTableRow[] = [
-      [
-        { data: '', header: true },
-        { data: 'Coverage', header: true },
-      ],
-      ['Lines', this.formatRate(metrics.coveredstatements, metrics.statements)],
-      ['Methods', this.formatRate(metrics.coveredmethods, metrics.methods)],
+  private buildMetricsTable(metrics: Metrics, includeConditionals: boolean): string {
+    const rows: [string, number, number][] = [
+      ['Lines', metrics.coveredstatements, metrics.statements],
+      ['Methods', metrics.coveredmethods, metrics.methods],
     ];
     if (includeConditionals) {
-      rows.push([
-        'Conditionals',
-        this.formatRate(metrics.coveredconditionals, metrics.conditionals),
-      ]);
+      rows.push(['Conditionals', metrics.coveredconditionals, metrics.conditionals]);
     }
-    return rows;
-  }
 
-  private formatRate(covered: number, total: number): string {
-    const rate = total === 0 ? 0 : (covered / total) * 100;
-    return `${rate.toFixed(1)}% (${covered}/${total})`;
+    const maxCovered = Math.max(...rows.map(([, covered]) => covered));
+    const maxTotal = Math.max(...rows.map(([,, total]) => total));
+    const coveredWidth = String(maxCovered).length;
+    const totalWidth = String(maxTotal).length;
+
+    const header = `|  | Coverage | Count |\n| --- | --: | --: |`;
+    const dataRows = rows
+      .map(([label, covered, total]) => {
+        const rate = total === 0 ? 0 : (covered / total) * 100;
+        const coverage = `\`${rate.toFixed(1)} %\``;
+        const count = `\`${String(covered).padStart(coveredWidth)} / ${String(total).padStart(totalWidth)}\``;
+        return `| ${label} | ${coverage} | ${count} |`;
+      })
+      .join('\n');
+
+    return `${header}\n${dataRows}`;
   }
 
   private escapeMarkdown(text: string): string {

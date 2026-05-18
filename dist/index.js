@@ -59405,13 +59405,13 @@ var StepSummaryReporter = class {
     } else if (result.files.length > 1) {
       for (const file of result.files) {
         summary.addHeading(file.name, 3);
-        summary.addTable(this.buildMetricsTable(file.metrics, includeConditionals));
+        summary.addRaw(this.buildMetricsTable(file.metrics, includeConditionals), true);
         if (includeUncoveredMethods && file.methods.length > 0) {
           this.addUncoveredMethodsDetails(file.methods);
         }
       }
     } else {
-      summary.addTable(this.buildMetricsTable(result.metrics, includeConditionals));
+      summary.addRaw(this.buildMetricsTable(result.metrics, includeConditionals), true);
       if (includeUncoveredMethods && result.methods.length > 0) {
         this.addUncoveredMethodsDetails(result.methods);
       }
@@ -59420,24 +59420,26 @@ var StepSummaryReporter = class {
   }
   buildMetricsTable(metrics, includeConditionals) {
     const rows = [
-      [
-        { data: "", header: true },
-        { data: "Coverage", header: true }
-      ],
-      ["Lines", this.formatRate(metrics.coveredstatements, metrics.statements)],
-      ["Methods", this.formatRate(metrics.coveredmethods, metrics.methods)]
+      ["Lines", metrics.coveredstatements, metrics.statements],
+      ["Methods", metrics.coveredmethods, metrics.methods]
     ];
     if (includeConditionals) {
-      rows.push([
-        "Conditionals",
-        this.formatRate(metrics.coveredconditionals, metrics.conditionals)
-      ]);
+      rows.push(["Conditionals", metrics.coveredconditionals, metrics.conditionals]);
     }
-    return rows;
-  }
-  formatRate(covered, total) {
-    const rate = total === 0 ? 0 : covered / total * 100;
-    return `${rate.toFixed(1)}% (${covered}/${total})`;
+    const maxCovered = Math.max(...rows.map(([, covered]) => covered));
+    const maxTotal = Math.max(...rows.map(([, , total]) => total));
+    const coveredWidth = String(maxCovered).length;
+    const totalWidth = String(maxTotal).length;
+    const header = `|  | Coverage | Count |
+| --- | --: | --: |`;
+    const dataRows = rows.map(([label, covered, total]) => {
+      const rate = total === 0 ? 0 : covered / total * 100;
+      const coverage = `\`${rate.toFixed(1)} %\``;
+      const count = `\`${String(covered).padStart(coveredWidth)} / ${String(total).padStart(totalWidth)}\``;
+      return `| ${label} | ${coverage} | ${count} |`;
+    }).join("\n");
+    return `${header}
+${dataRows}`;
   }
   escapeMarkdown(text) {
     return text.replace(/\|/g, "\\|").replace(/`/g, "\\`").replace(/\r?\n/g, " ");
