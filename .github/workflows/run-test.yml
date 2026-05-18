@@ -10,8 +10,11 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  JUNIT_ARTIFACT_PREFIX: test-results
+
 jobs:
-  test:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -19,13 +22,6 @@ jobs:
         with:
           cache: 'npm'
       - run: npm ci
-      - run: npm run typecheck
-      - run: npm test
-      - uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: test-results
-          path: test-results/junit.xml
       - run: npm run build
       - name: Verify dist/ is up-to-date
         run: |
@@ -34,21 +30,55 @@ jobs:
             exit 1
           fi
 
-  report:
+  test:
     runs-on: ubuntu-latest
-    needs: test
-    if: always()
+    strategy:
+      matrix:
+        node-version: [24]
+    env:
+      JUNIT_OUTPUT_PATH: /tmp/test-results/junit-${{ matrix.node-version }}.xml
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: ${{ env.JUNIT_ARTIFACT_PREFIX }} ${{ matrix.node-version }}
+          path: ${{ env.JUNIT_OUTPUT_PATH }}
+
+  report:
+    name: Report
+    runs-on: ubuntu-latest
+    needs: [test]
+    if: ${{ !cancelled() }}
     permissions:
       checks: write
       contents: read
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/checkout@v6
+
+      - name: Download test results
+        uses: actions/download-artifact@v8
         with:
-          name: test-results
+          path: junit-results
+          pattern: "${{ env.JUNIT_ARTIFACT_PREFIX }} *"
+          merge-multiple: 'true'
+
       - name: Report test results
         uses: dorny/test-reporter@v3
         with:
-          name: Vitest
-          path: junit.xml
+          name: Test results
+          path: 'junit-results/**/*.xml'
           reporter: jest-junit
+          list-suites: 'all'
+          list-tests: 'all'
+          fail-on-error: 'true'
+          fail-on-empty: 'false'
           use-actions-summary: 'true'
+          token: ${{ github.token }}

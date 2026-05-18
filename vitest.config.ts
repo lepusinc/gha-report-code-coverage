@@ -1,12 +1,14 @@
 import { defineConfig } from 'vitest/config';
 
+const isCI = !!process.env.CI;
+
 export default defineConfig({
   test: {
     include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
     environment: 'node',
-    reporters: ['default', 'junit'],
-    outputFile: {
-      junit: './test-results/junit.xml',
-    },
+    reporters: isCI ? ['default', 'junit'] : ['default'],
+    outputFile: isCI
+      ? { junit: process.env.JUNIT_OUTPUT_PATH ?? '/tmp/test-results/junit.xml' }
+      : undefined,
   },
 });
