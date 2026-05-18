@@ -10,5 +10,11 @@ export default defineConfig({
     outputFile: isCI
       ? { junit: process.env.JUNIT_OUTPUT_PATH ?? '/tmp/test-results/junit.xml' }
       : undefined,
+    coverage: {
+      enabled: isCI,
+      provider: 'v8',
+      reporter: ['clover'],
+      reportsDirectory: '/tmp/coverage',
+    },
   },
 });

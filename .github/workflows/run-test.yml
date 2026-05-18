@@ -12,6 +12,7 @@ concurrency:
 
 env:
   JUNIT_ARTIFACT_PREFIX: test-results
+  COVERAGE_ARTIFACT: coverage-results
 
 jobs:
   build:
@@ -34,7 +35,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node-version: [24]
+        node-version: [24, 26]
     env:
       JUNIT_OUTPUT_PATH: /tmp/test-results/junit-${{ matrix.node-version }}.xml
     steps:
@@ -51,9 +52,13 @@ jobs:
         with:
           name: ${{ env.JUNIT_ARTIFACT_PREFIX }} ${{ matrix.node-version }}
           path: ${{ env.JUNIT_OUTPUT_PATH }}
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.COVERAGE_ARTIFACT }} ${{ matrix.node-version }}
+          path: /tmp/coverage/clover.xml
 
-  report:
-    name: Report
+  test-report:
+    name: Test Report
     runs-on: ubuntu-latest
     needs: [test]
     if: ${{ !cancelled() }}
@@ -82,3 +87,20 @@ jobs:
           fail-on-empty: 'false'
           use-actions-summary: 'true'
           token: ${{ github.token }}
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: [test]
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/download-artifact@v8
+        with:
+          name: ${{ env.COVERAGE_ARTIFACT }} 24
+          path: coverage
+      - uses: ./
+        with:
+          file: 'coverage/clover.xml'
+          title: 'Test Coverage'
