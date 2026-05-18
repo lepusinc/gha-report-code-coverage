@@ -100674,7 +100674,11 @@ var SourceResolveProcess = class {
         "artifact cross-workflow lookup requires all of 'github-token', 'run-id', 'repository-owner', 'repository-name'"
       );
     }
-    return { token, workflowRunId: Number(runId), repositoryOwner, repositoryName };
+    const workflowRunId = Number(runId);
+    if (!Number.isFinite(workflowRunId) || !Number.isInteger(workflowRunId)) {
+      throw new Error(`artifact 'run-id' must be a finite integer, got: ${runId}`);
+    }
+    return { token, workflowRunId, repositoryOwner, repositoryName };
   }
   async downloadMatched(client2, artifacts, mergeMultiple, findBy) {
     for (const artifact of artifacts) {
