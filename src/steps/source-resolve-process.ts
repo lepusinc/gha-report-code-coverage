@@ -114,7 +114,12 @@ export class SourceResolveProcess {
       );
     }
 
-    return { token, workflowRunId: Number(runId), repositoryOwner, repositoryName };
+    const workflowRunId = Number(runId);
+    if (!Number.isFinite(workflowRunId) || !Number.isInteger(workflowRunId)) {
+      throw new Error(`artifact 'run-id' must be a finite integer, got: ${runId}`);
+    }
+
+    return { token, workflowRunId, repositoryOwner, repositoryName };
   }
 
   private async downloadMatched(
