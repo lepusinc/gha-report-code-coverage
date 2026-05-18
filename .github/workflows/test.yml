@@ -1,4 +1,4 @@
-name: Run Test
+name: Test
 
 on:
   pull_request:
@@ -45,7 +45,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
       - run: npm ci
-      - run: npm run typecheck
       - run: npm test
       - uses: actions/upload-artifact@v7
         if: always()

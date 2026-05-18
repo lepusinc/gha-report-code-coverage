@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import * as core from '@actions/core';
 import { CoverageAnalysisProcess } from '../../src/steps/coverage-analysis-process';
 import { Config } from '../../src/config/config';
-import { Thresholds, ThresholdValue } from '../../src/config/thresholds';
+import { Thresholds } from '../../src/config/thresholds';
 import { CoverageData } from '../../src/models/coverage';
 import { Metrics } from '../../src/models/metrics';
 import { SourceCodeMethod, SourceCodeStatement } from '../../src/models/source-code';
