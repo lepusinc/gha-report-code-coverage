@@ -56,7 +56,7 @@ export class StepSummaryReporter implements Reporter {
       })
       .join('\n');
 
-    return `${header}\n${dataRows}`;
+    return `\n${header}\n${dataRows}`;
   }
 
   private escapeMarkdown(text: string): string {

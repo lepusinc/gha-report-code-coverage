@@ -59438,7 +59438,8 @@ var StepSummaryReporter = class {
       const count = `\`${String(covered).padStart(coveredWidth)} / ${String(total).padStart(totalWidth)}\``;
       return `| ${label} | ${coverage} | ${count} |`;
     }).join("\n");
-    return `${header}
+    return `
+${header}
 ${dataRows}`;
   }
   escapeMarkdown(text) {
@@ -100650,18 +100651,51 @@ var SourceResolveProcess = class {
     return path5.join(DOWNLOAD_PATH, config.file);
   }
   parseArtifactConfig(input) {
+    let raw;
     try {
-      const result = load(input);
-      if (result !== null && typeof result === "object") {
-        return result;
+      raw = load(input);
+    } catch {
+      try {
+        raw = JSON.parse(input);
+      } catch {
+        throw new Error("Failed to parse artifact config as YAML or JSON");
       }
-    } catch {
     }
-    try {
-      return JSON.parse(input);
-    } catch {
-      throw new Error("Failed to parse artifact config as YAML or JSON");
+    return this.validateArtifactConfig(raw);
+  }
+  validateArtifactConfig(raw) {
+    if (raw === null || typeof raw !== "object" || Array.isArray(raw)) {
+      throw new Error("Invalid artifact config: must be an object (YAML mapping or JSON object)");
     }
+    const obj = raw;
+    const config = {};
+    for (const field of ["name", "pattern", "path", "github-token", "repository-owner", "repository-name"]) {
+      const val = obj[field];
+      if (val !== void 0) {
+        if (typeof val !== "string") {
+          throw new Error(`Invalid artifact config: '${field}' must be a string`);
+        }
+        config[field] = val;
+      }
+    }
+    for (const field of ["id", "artifact-id", "run-id"]) {
+      const val = obj[field];
+      if (val !== void 0) {
+        const num = Number(val);
+        if (!Number.isFinite(num) || !Number.isInteger(num)) {
+          throw new Error(`Invalid artifact config: '${field}' must be a finite integer, got: ${val}`);
+        }
+        config[field] = num;
+      }
+    }
+    const mergeMultiple = obj["merge-multiple"];
+    if (mergeMultiple !== void 0) {
+      if (typeof mergeMultiple !== "boolean") {
+        throw new Error(`Invalid artifact config: 'merge-multiple' must be a boolean`);
+      }
+      config["merge-multiple"] = mergeMultiple;
+    }
+    return config;
   }
   buildFindBy(parsed) {
     const token = parsed["github-token"];
@@ -100676,11 +100710,7 @@ var SourceResolveProcess = class {
         "artifact cross-workflow lookup requires all of 'github-token', 'run-id', 'repository-owner', 'repository-name'"
       );
     }
-    const workflowRunId = Number(runId);
-    if (!Number.isFinite(workflowRunId) || !Number.isInteger(workflowRunId)) {
-      throw new Error(`artifact 'run-id' must be a finite integer, got: ${runId}`);
-    }
-    return { token, workflowRunId, repositoryOwner, repositoryName };
+    return { token, workflowRunId: runId, repositoryOwner, repositoryName };
   }
   async downloadMatched(client2, artifacts, mergeMultiple, findBy) {
     for (const artifact of artifacts) {

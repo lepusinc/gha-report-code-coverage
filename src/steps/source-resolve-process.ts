@@ -83,19 +83,56 @@ export class SourceResolveProcess {
   }
 
   private parseArtifactConfig(input: string): ArtifactConfig {
+    let raw: unknown;
     try {
-      const result = yaml.load(input);
-      if (result !== null && typeof result === 'object') {
-        return result as ArtifactConfig;
+      raw = yaml.load(input);
+    } catch {
+      try {
+        raw = JSON.parse(input);
+      } catch {
+        throw new Error('Failed to parse artifact config as YAML or JSON');
       }
-    } catch {
-      // fall through to JSON
     }
-    try {
-      return JSON.parse(input) as ArtifactConfig;
-    } catch {
-      throw new Error('Failed to parse artifact config as YAML or JSON');
+    return this.validateArtifactConfig(raw);
+  }
+
+  private validateArtifactConfig(raw: unknown): ArtifactConfig {
+    if (raw === null || typeof raw !== 'object' || Array.isArray(raw)) {
+      throw new Error('Invalid artifact config: must be an object (YAML mapping or JSON object)');
     }
+    const obj = raw as Record<string, unknown>;
+    const config: ArtifactConfig = {};
+
+    for (const field of ['name', 'pattern', 'path', 'github-token', 'repository-owner', 'repository-name'] as const) {
+      const val = obj[field];
+      if (val !== undefined) {
+        if (typeof val !== 'string') {
+          throw new Error(`Invalid artifact config: '${field}' must be a string`);
+        }
+        config[field] = val;
+      }
+    }
+
+    for (const field of ['id', 'artifact-id', 'run-id'] as const) {
+      const val = obj[field];
+      if (val !== undefined) {
+        const num = Number(val);
+        if (!Number.isFinite(num) || !Number.isInteger(num)) {
+          throw new Error(`Invalid artifact config: '${field}' must be a finite integer, got: ${val}`);
+        }
+        config[field] = num;
+      }
+    }
+
+    const mergeMultiple = obj['merge-multiple'];
+    if (mergeMultiple !== undefined) {
+      if (typeof mergeMultiple !== 'boolean') {
+        throw new Error(`Invalid artifact config: 'merge-multiple' must be a boolean`);
+      }
+      config['merge-multiple'] = mergeMultiple;
+    }
+
+    return config;
   }
 
   private buildFindBy(parsed: ArtifactConfig): FindBy | undefined {
@@ -114,12 +151,7 @@ export class SourceResolveProcess {
       );
     }
 
-    const workflowRunId = Number(runId);
-    if (!Number.isFinite(workflowRunId) || !Number.isInteger(workflowRunId)) {
-      throw new Error(`artifact 'run-id' must be a finite integer, got: ${runId}`);
-    }
-
-    return { token, workflowRunId, repositoryOwner, repositoryName };
+    return { token, workflowRunId: runId, repositoryOwner, repositoryName };
   }
 
   private async downloadMatched(
