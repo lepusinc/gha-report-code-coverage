@@ -13,6 +13,9 @@ concurrency:
 jobs:
   ci:
     runs-on: ubuntu-latest
+    permissions:
+      checks: write
+      contents: read
     steps:
       - uses: actions/checkout@v6
       - uses: actions/setup-node@v6
@@ -21,6 +24,14 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm test
+      - name: Report test results
+        uses: dorny/test-reporter@v3
+        if: always()
+        with:
+          name: Vitest
+          path: test-results/junit.xml
+          reporter: jest-junit
+          use-actions-summary: 'true'
       - run: npm run build
       - name: Verify dist/ is up-to-date
         run: |
