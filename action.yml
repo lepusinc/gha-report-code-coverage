@@ -1,0 +1,62 @@
+name: Report Code Coverage
+description: 'Reads coverage report files matched by a glob pattern and outputs a summary to GitHub Step Summary. Optionally downloads coverage artifacts from prior jobs before reading.'
+author: 'Lepus inc.'
+
+inputs:
+  file:
+    description: 'Glob pattern matching coverage report files to read (e.g. "**/clover.xml"). Currently Clover XML is supported.'
+    required: true
+  artifact:
+    description: 'YAML or JSON configuration passed to actions/download-artifact to fetch coverage artifacts before reading. Leave empty to skip artifact download and read files already present in the workspace.'
+    required: false
+    default: ''
+  required:
+    description: 'Whether to fail the job when no files match the `file` glob. Parsed as boolean ("true"/"false"). Defaults to "true".'
+    required: false
+    default: 'true'
+  step-summary:
+    description: 'Whether to write the coverage report to GitHub Step Summary. Parsed as boolean ("true"/"false"). Defaults to "true".'
+    required: false
+    default: 'true'
+  title:
+    description: 'Heading text used for the coverage section in Step Summary and the `title` output.'
+    required: false
+    default: 'Coverage'
+  thresholds-lines:
+    description: 'Line coverage thresholds in "<warn> <fail>" format (e.g. "60 80"). Empty disables the check.'
+    required: false
+    default: ''
+  thresholds-methods:
+    description: 'Method coverage thresholds in "<warn> <fail>" format (e.g. "60 80"). Empty disables the check.'
+    required: false
+    default: ''
+  thresholds-conditionals:
+    description: 'Conditional/branch coverage thresholds in "<warn> <fail>" format (e.g. "60 80"). Empty disables the check. Skipped when conditional coverage is not measured.'
+    required: false
+    default: ''
+  uncovered-methods-limit:
+    description: 'Maximum number of uncovered methods to list in the report. Use "0" or "off" to disable the listing entirely. Defaults to "10".'
+    required: false
+    default: '10'
+
+outputs:
+  title:
+    description: 'Heading text used for the coverage report (mirrors the `title` input).'
+  lines:
+    description: 'Overall line coverage percentage as a number, or "-" if no files were found.'
+  methods:
+    description: 'Overall method coverage percentage as a number, or "-" if no files were found.'
+  conditionals:
+    description: 'Overall conditional/branch coverage percentage as a number. Skipped (empty) when conditional coverage is not measured.'
+  result:
+    description: 'Overall threshold result: "ok", "warn", or "fail". "-" when no files were found.'
+  report:
+    description: 'Full coverage report serialized as a JSON string.'
+
+runs:
+  using: node24
+  main: dist/index.js
+
+branding:
+  icon: bar-chart-2
+  color: green

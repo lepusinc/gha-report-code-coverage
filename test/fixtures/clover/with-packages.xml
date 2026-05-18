@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1700000000">
+  <project name="Integration Tests" timestamp="1700000000">
+    <metrics statements="50" coveredstatements="40" methods="10" coveredmethods="8" conditionals="20" coveredconditionals="15"/>
+    <package name="App\Http">
+      <file name="src/Http/OrderController.php">
+        <line num="10" type="method" name="index" count="5"/>
+        <line num="20" type="method" name="show" count="3"/>
+        <line num="30" type="method" name="store" count="1"/>
+        <line num="40" type="method" name="update" count="2"/>
+        <line num="50" type="method" name="destroy" count="0"/>
+        <line num="60" type="method" name="bulkCreate" count="0"/>
+        <line num="70" type="method" name="search" count="4"/>
+        <line num="80" type="method" name="export" count="1"/>
+        <line num="90" type="method" name="import" count="2"/>
+        <line num="100" type="method" name="archive" count="3"/>
+        <line num="11" type="stmt" count="5"/>
+        <line num="12" type="stmt" count="0"/>
+        <line num="13" type="stmt" count="0"/>
+      </file>
+    </package>
+  </project>
+</coverage>

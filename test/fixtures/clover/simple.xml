@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1700000000">
+  <project name="Unit Tests" timestamp="1700000000">
+    <metrics statements="50" coveredstatements="40" methods="10" coveredmethods="8" conditionals="20" coveredconditionals="15"/>
+    <file name="src/UserService.php">
+      <line num="10" type="method" name="getUserById" count="5"/>
+      <line num="20" type="method" name="createUser" count="3"/>
+      <line num="30" type="method" name="updateUser" count="1"/>
+      <line num="40" type="method" name="deleteUser" count="2"/>
+      <line num="50" type="method" name="findUsers" count="7"/>
+      <line num="60" type="method" name="validateEmail" count="4"/>
+      <line num="70" type="method" name="hashPassword" count="6"/>
+      <line num="80" type="method" name="verifyPassword" count="2"/>
+      <line num="90" type="method" name="serialize" count="0"/>
+      <line num="100" type="method" name="deserialize" count="0"/>
+      <line num="11" type="stmt" count="5"/>
+      <line num="12" type="stmt" count="0"/>
+      <line num="13" type="stmt" count="0"/>
+      <line num="14" type="stmt" count="0"/>
+      <line num="15" type="stmt" count="0"/>
+      <line num="16" type="stmt" count="0"/>
+      <line num="17" type="stmt" count="0"/>
+      <line num="18" type="stmt" count="0"/>
+      <line num="19" type="stmt" count="0"/>
+      <line num="21" type="stmt" count="0"/>
+      <line num="22" type="stmt" count="0"/>
+    </file>
+  </project>
+</coverage>

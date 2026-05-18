@@ -1,0 +1,36 @@
+{
+  "name": "gha-report-code-coverage",
+  "version": "1.0.0",
+  "description": "GitHub Action to report code coverage from Clover XML artifacts",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsup",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@actions/artifact": "^6.2.1",
+    "@actions/core": "^3.0.1",
+    "fast-xml-parser": "^5.7.0",
+    "glob": "^13.0.6",
+    "js-yaml": "^4.1.1",
+    "minimatch": "^10.2.5"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/node": "^24.0.0",
+    "@vitest/coverage-v8": "^4.1.6",
+    "eslint": "^10.4.0",
+    "jiti": "^2.7.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.59.3",
+    "vitest": "^4.1.6"
+  }
+}

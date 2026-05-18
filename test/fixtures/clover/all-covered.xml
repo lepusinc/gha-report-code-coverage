@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1700000000">
+  <project name="Smoke Tests" timestamp="1700000000">
+    <metrics statements="10" coveredstatements="10" methods="3" coveredmethods="3" conditionals="4" coveredconditionals="4"/>
+    <file name="src/Healthcheck.php">
+      <line num="10" type="method" name="ping" count="1"/>
+      <line num="20" type="method" name="status" count="2"/>
+      <line num="30" type="method" name="version" count="3"/>
+      <line num="11" type="stmt" count="1"/>
+      <line num="12" type="stmt" count="1"/>
+      <line num="21" type="stmt" count="2"/>
+    </file>
+  </project>
+</coverage>

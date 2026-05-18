@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1700000000">
+  <project name="Frontend Tests" timestamp="1700000000">
+    <metrics statements="40" coveredstatements="30" methods="8" coveredmethods="6" conditionals="0" coveredconditionals="0"/>
+    <file name="src/components/Button.tsx">
+      <line num="5" type="method" name="render" count="10"/>
+      <line num="15" type="method" name="onClick" count="0"/>
+      <line num="6" type="stmt" count="0"/>
+      <line num="7" type="stmt" count="0"/>
+    </file>
+  </project>
+</coverage>
