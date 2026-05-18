@@ -55,7 +55,7 @@ coverage-report:
       with:
         file: '**/coverage.xml'
         title: 'Test Coverage'
-        thresholds-lines: '60 80'
+        thresholds-lines: '80 60'
 ```
 
 ### artifact からダウンロードして読み込む
@@ -73,7 +73,7 @@ coverage-report:
         artifact: |
           name: ${{ needs.test.outputs.coverage-artifact-name }}
         file: '**/coverage.xml'
-        thresholds-lines: '60 80'
+        thresholds-lines: '80 60'
 ```
 
 ### 複数テストスイートを合算する
@@ -124,13 +124,13 @@ Clover XML ファイルごとにサブセクション（`### <project name>`）�
 | `required`                | boolean | `true`       | `false` にするとカバレッジファイルが1件も見つからない場合に警告に留めてジョブを続行する。`true` の場合はエラーにする                                                    |
 | `step-summary`            | boolean | `true`       | `false` にすると Step Summary への出力を行わない                                                                                   |
 | `title`                   | string  | `'Coverage'` | Step Summary の見出しテキスト                                                                                                 |
-| `thresholds-lines`        | string  | `''`         | ライン カバレッジの warn / fail 閾値（例: `'60 80'`）。省略時はチェックなし                                                                    |
-| `thresholds-methods`      | string  | `''`         | メソッド カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                   |
-| `thresholds-conditionals` | string  | `''`         | 条件分岐カバレッジの warn / fail 閾値（例: `'50 70'`）。省略時はチェックなし                                                                    |
+| `thresholds-lines`        | string  | `''`         | ライン カバレッジの warn / fail 閾値（例: `'80 60'`）。省略時はチェックなし                                                                    |
+| `thresholds-methods`      | string  | `''`         | メソッド カバレッジの warn / fail 閾値（例: `'70 50'`）。省略時はチェックなし                                                                   |
+| `thresholds-conditionals` | string  | `''`         | 条件分岐カバレッジの warn / fail 閾値（例: `'70 50'`）。省略時はチェックなし                                                                    |
 | `uncovered-methods-limit` | string  | `'10'`       | Step Summary に表示する未カバーメソッドの最大件数、および `report` output の `statements` 配列の上限件数。`'0'` または `'off'` を指定すると未カバーメソッドの出力をスキップする |
 
 `artifact` には `actions/download-artifact` がサポートする任意のパラメータを指定できる。ただし `path` はアクション内部で
-`/tmp/lepusinc/gha-report-code-coverage` に固定されるため、指定しても無視される（警告を出力）。
+`os.tmpdir()` が返すランナー OS の一時ディレクトリ + `lepusinc/gha-report-code-coverage` に固定されるため、指定しても無視される（警告を出力）。
 
 ### outputs
 
