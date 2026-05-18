@@ -100619,26 +100619,27 @@ var SourceResolveProcess = class {
     const mergeMultiple = parsed["merge-multiple"] === true;
     const rawArtifactId = parsed.id ?? parsed["artifact-id"];
     const artifactId = rawArtifactId !== void 0 ? Number(rawArtifactId) : void 0;
+    const findBy = this.buildFindBy(parsed);
     if (artifactId !== void 0) {
       if (!Number.isFinite(artifactId)) {
         throw new Error(`artifact 'id' must be a finite number, got: ${rawArtifactId}`);
       }
-      await client2.downloadArtifact(artifactId, { path: DOWNLOAD_PATH });
+      await client2.downloadArtifact(artifactId, { path: DOWNLOAD_PATH, findBy });
     } else if (parsed.name !== void 0) {
-      const list = await client2.listArtifacts();
+      const list = await client2.listArtifacts({ findBy });
       const found = list.artifacts.find((a) => a.name === parsed.name);
       if (!found) {
         throw new Error(`Artifact not found: ${parsed.name}`);
       }
-      await client2.downloadArtifact(found.id, { path: DOWNLOAD_PATH });
+      await client2.downloadArtifact(found.id, { path: DOWNLOAD_PATH, findBy });
     } else if (parsed.pattern !== void 0) {
-      const list = await client2.listArtifacts();
+      const list = await client2.listArtifacts({ findBy });
       const pattern = parsed.pattern;
       const matched = list.artifacts.filter((a) => minimatch(a.name, pattern));
       if (matched.length === 0) {
         warning(`No artifacts matched pattern: ${pattern}`);
       }
-      await this.downloadMatched(client2, matched, mergeMultiple);
+      await this.downloadMatched(client2, matched, mergeMultiple, findBy);
     } else {
       throw new Error(
         "artifact config must specify one of 'name', 'pattern', or 'id'"
@@ -100660,10 +100661,25 @@ var SourceResolveProcess = class {
       throw new Error("Failed to parse artifact config as YAML or JSON");
     }
   }
-  async downloadMatched(client2, artifacts, mergeMultiple) {
+  buildFindBy(parsed) {
+    const token = parsed["github-token"];
+    const runId = parsed["run-id"];
+    const repositoryOwner = parsed["repository-owner"];
+    const repositoryName = parsed["repository-name"];
+    if (token === void 0 && runId === void 0 && repositoryOwner === void 0 && repositoryName === void 0) {
+      return void 0;
+    }
+    if (token === void 0 || runId === void 0 || repositoryOwner === void 0 || repositoryName === void 0) {
+      throw new Error(
+        "artifact cross-workflow lookup requires all of 'github-token', 'run-id', 'repository-owner', 'repository-name'"
+      );
+    }
+    return { token, workflowRunId: Number(runId), repositoryOwner, repositoryName };
+  }
+  async downloadMatched(client2, artifacts, mergeMultiple, findBy) {
     for (const artifact of artifacts) {
       const target = mergeMultiple ? DOWNLOAD_PATH : path5.join(DOWNLOAD_PATH, artifact.name);
-      await client2.downloadArtifact(artifact.id, { path: target });
+      await client2.downloadArtifact(artifact.id, { path: target, findBy });
     }
   }
 };
