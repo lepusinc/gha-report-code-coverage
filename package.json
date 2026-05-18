@@ -4,7 +4,7 @@
   "description": "GitHub Action to report code coverage from Clover XML artifacts",
   "main": "dist/index.js",
   "scripts": {
-    "build": "ncc build src/main.ts -o dist --source-map --license licenses.txt",
+    "build": "tsup",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -15,28 +15,23 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@actions/artifact": "^2.3.2",
-    "@actions/core": "^1.11.1",
+    "@actions/artifact": "^6.2.1",
+    "@actions/core": "^3.0.1",
+    "@rolldown/binding-darwin-arm64": "^1.0.1",
     "fast-xml-parser": "^5.7.0",
     "glob": "^13.0.6",
     "js-yaml": "^4.1.1",
     "minimatch": "^10.2.5"
   },
-  "overrides": {
-    "undici": "^6.25.0",
-    "@octokit/plugin-paginate-rest": "^9.2.2",
-    "@octokit/request": "^9.2.1",
-    "@octokit/request-error": "^6.1.7"
-  },
   "devDependencies": {
     "@types/js-yaml": "^4.0.9",
     "@types/node": "^24.0.0",
-    "@vercel/ncc": "^0.38.3",
-    "@vitest/coverage-v8": "^3.2.4",
+    "@vitest/coverage-v8": "^4.1.6",
     "eslint": "^10.4.0",
     "jiti": "^2.7.0",
-    "typescript": "^5.8.3",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
     "typescript-eslint": "^8.59.3",
-    "vitest": "^3.2.4"
+    "vitest": "^4.1.6"
   }
 }
