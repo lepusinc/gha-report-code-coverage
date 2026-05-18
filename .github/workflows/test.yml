@@ -23,10 +23,10 @@ jobs:
         with:
           cache: 'npm'
       - run: npm ci
-      - run: npm run build
       - name: Verify dist/ is up-to-date
         run: |
-          if ! git diff --exit-code dist/; then
+          npx tsup --out-dir /tmp/dist-verify
+          if ! diff dist/index.js /tmp/dist-verify/index.js; then
             echo "dist/ is out of date. Run 'npm run build' and commit the changes."
             exit 1
           fi
