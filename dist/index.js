@@ -59407,13 +59407,15 @@ var StepSummaryReporter = class {
         summary.addHeading(file.name, 3);
         summary.addRaw(this.buildMetricsTable(file.metrics, includeConditionals), true);
         if (includeUncoveredMethods && file.methods.length > 0) {
-          this.addUncoveredMethodsDetails(file.methods);
+          const totalUncovered = Math.max(0, file.metrics.methods - file.metrics.coveredmethods);
+          this.addUncoveredMethodsDetails(file.methods, totalUncovered);
         }
       }
     } else {
       summary.addRaw(this.buildMetricsTable(result.metrics, includeConditionals), true);
       if (includeUncoveredMethods && result.methods.length > 0) {
-        this.addUncoveredMethodsDetails(result.methods);
+        const totalUncovered = Math.max(0, result.metrics.methods - result.metrics.coveredmethods);
+        this.addUncoveredMethodsDetails(result.methods, totalUncovered);
       }
     }
     await summary.write();
@@ -59445,13 +59447,17 @@ ${dataRows}`;
   escapeMarkdown(text) {
     return text.replace(/\|/g, "\\|").replace(/`/g, "\\`").replace(/\r?\n/g, " ");
   }
-  addUncoveredMethodsDetails(methods) {
+  addUncoveredMethodsDetails(methods, totalUncovered) {
     const header = "| \u30D5\u30A1\u30A4\u30EB | \u884C | \u30E1\u30BD\u30C3\u30C9 |\n| --- | --- | --- |\n";
     const rows = methods.map((m) => `| \`${this.escapeMarkdown(m.file)}\` | ${m.num} | \`${this.escapeMarkdown(m.name)}\` |`).join("\n");
+    const truncated = methods.length < totalUncovered ? `
+_${methods.length}\u4EF6\u306E\u307F\u8868\u793A\uFF08\u5168${totalUncovered}\u4EF6\uFF09_
+` : "";
     const content = `
+
 ${header}${rows}
-`;
-    summary.addDetails(`\u672A\u30AB\u30D0\u30FC\u306E\u30E1\u30BD\u30C3\u30C9 (${methods.length})`, content);
+${truncated}`;
+    summary.addDetails(`\u672A\u30AB\u30D0\u30FC\u306E\u30E1\u30BD\u30C3\u30C9 (${totalUncovered})`, content);
   }
 };
 
