@@ -19,13 +19,15 @@ export class StepSummaryReporter implements Reporter {
         core.summary.addHeading(file.name, 3);
         core.summary.addRaw(this.buildMetricsTable(file.metrics, includeConditionals), true);
         if (includeUncoveredMethods && file.methods.length > 0) {
-          this.addUncoveredMethodsDetails(file.methods);
+          const totalUncovered = file.metrics.methods - file.metrics.coveredmethods;
+          this.addUncoveredMethodsDetails(file.methods, totalUncovered);
         }
       }
     } else {
       core.summary.addRaw(this.buildMetricsTable(result.metrics, includeConditionals), true);
       if (includeUncoveredMethods && result.methods.length > 0) {
-        this.addUncoveredMethodsDetails(result.methods);
+        const totalUncovered = result.metrics.methods - result.metrics.coveredmethods;
+        this.addUncoveredMethodsDetails(result.methods, totalUncovered);
       }
     }
 
@@ -63,12 +65,13 @@ export class StepSummaryReporter implements Reporter {
     return text.replace(/\|/g, '\\|').replace(/`/g, '\\`').replace(/\r?\n/g, ' ');
   }
 
-  private addUncoveredMethodsDetails(methods: SourceCodeMethod[]): void {
+  private addUncoveredMethodsDetails(methods: SourceCodeMethod[], totalUncovered: number): void {
     const header = '| ファイル | 行 | メソッド |\n| --- | --- | --- |\n';
     const rows = methods
       .map((m) => `| \`${this.escapeMarkdown(m.file)}\` | ${m.num} | \`${this.escapeMarkdown(m.name)}\` |`)
       .join('\n');
-    const content = `\n${header}${rows}\n`;
-    core.summary.addDetails(`未カバーのメソッド (${methods.length})`, content);
+    const truncated = methods.length < totalUncovered ? `\n_${methods.length}件のみ表示（全${totalUncovered}件）_\n` : '';
+    const content = `\n\n${header}${rows}\n${truncated}`;
+    core.summary.addDetails(`未カバーのメソッド (${totalUncovered})`, content);
   }
 }
