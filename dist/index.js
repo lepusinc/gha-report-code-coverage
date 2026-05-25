@@ -59407,14 +59407,14 @@ var StepSummaryReporter = class {
         summary.addHeading(file.name, 3);
         summary.addRaw(this.buildMetricsTable(file.metrics, includeConditionals), true);
         if (includeUncoveredMethods && file.methods.length > 0) {
-          const totalUncovered = file.metrics.methods - file.metrics.coveredmethods;
+          const totalUncovered = Math.max(0, file.metrics.methods - file.metrics.coveredmethods);
           this.addUncoveredMethodsDetails(file.methods, totalUncovered);
         }
       }
     } else {
       summary.addRaw(this.buildMetricsTable(result.metrics, includeConditionals), true);
       if (includeUncoveredMethods && result.methods.length > 0) {
-        const totalUncovered = result.metrics.methods - result.metrics.coveredmethods;
+        const totalUncovered = Math.max(0, result.metrics.methods - result.metrics.coveredmethods);
         this.addUncoveredMethodsDetails(result.methods, totalUncovered);
       }
     }
